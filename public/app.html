@@ -216,14 +216,28 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 .share-btn .share-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 /* Facture preview */
 #facture-preview-wrap { font-family: 'DM Sans', sans-serif; }
-.fac-preview { background: #fff; color: #111; border-radius: 12px; padding: 24px; font-size: 13px; line-height: 1.5; }
-.fac-preview h1 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: #111; }
-.fac-preview table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-.fac-preview th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #777; border-bottom: 1px solid #eee; padding: 6px 0; text-align: left; }
-.fac-preview td { padding: 7px 0; border-bottom: 1px solid #f4f4f4; color: #222; }
+.fac-preview { background: #fff; color: #111; border-radius: 16px; overflow: hidden; font-size: 13px; line-height: 1.6; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+.fac-header-band { background: linear-gradient(135deg, #0A1628 0%, #1a3a5c 100%); padding: 24px 28px; display: flex; justify-content: space-between; align-items: flex-start; }
+.fac-brand-name { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: #00C896; letter-spacing: -0.5px; }
+.fac-brand-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+.fac-header-right { text-align: right; }
+.fac-title-word { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 3px; text-transform: uppercase; }
+.fac-num { font-size: 13px; color: #00C896; margin-top: 4px; font-weight: 600; }
+.fac-date-label { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+.fac-body { padding: 24px 28px; }
+.fac-client-box { background: #f8fafb; border-left: 3px solid #00C896; border-radius: 0 8px 8px 0; padding: 12px 14px; margin-bottom: 20px; }
+.fac-client-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #00C896; margin-bottom: 4px; }
+.fac-client-name { font-size: 15px; font-weight: 700; color: #111; }
+.fac-client-tel { font-size: 12px; color: #777; margin-top: 2px; }
+.fac-preview table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.fac-preview th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #aaa; border-bottom: 2px solid #f0f0f0; padding: 8px 6px; text-align: left; }
+.fac-preview td { padding: 10px 6px; border-bottom: 1px solid #f5f5f5; color: #222; font-size: 13px; }
 .fac-preview td:last-child, .fac-preview th:last-child { text-align: right; }
-.fac-total-row td { font-weight: 700; font-size: 15px; color: #111; border-bottom: none; padding-top: 12px; }
-.fac-footer { margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee; font-size: 11px; color: #999; text-align: center; }
+.fac-total-band { background: #f8fafb; border-radius: 10px; padding: 14px 16px; margin-top: 16px; display: flex; justify-content: space-between; align-items: center; }
+.fac-total-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #888; }
+.fac-total-amount { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: #00C896; }
+.fac-footer { background: linear-gradient(135deg, #0A1628 0%, #1a3a5c 100%); padding: 14px 28px; text-align: center; font-size: 11px; color: rgba(255,255,255,0.45); }
+.fac-footer span { color: #00C896; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -1680,41 +1694,44 @@ function voirFacture(id) {
   if (!f) return;
   currentFactureId = id;
   const shopName = DB.get('shopname') || 'Ma Boutique';
+  const shopInfo = DB.get('shopinfo') || {};
   const html = `
     <div class="fac-preview" id="fac-print-zone">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div class="fac-header-band">
         <div>
-          <h1>${shopName}</h1>
-          <div style="font-size:12px;color:#888;margin-top:2px">Gestion boutique · Sénégal</div>
+          <div class="fac-brand-name">${shopName}</div>
+          <div class="fac-brand-sub">${shopInfo.ville || 'Sénégal'} ${shopInfo.tel ? '· ' + shopInfo.tel : ''}</div>
         </div>
-        <div style="text-align:right">
-          <div style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:#111">FACTURE</div>
-          <div style="font-size:13px;color:#555;margin-top:2px">${f.num}</div>
-          <div style="font-size:12px;color:#888">${formatDate(f.date)}</div>
+        <div class="fac-header-right">
+          <div class="fac-title-word">Facture</div>
+          <div class="fac-num">${f.num}</div>
+          <div class="fac-date-label">${formatDate(f.date)}</div>
         </div>
       </div>
-      <div style="background:#f8f8f8;border-radius:8px;padding:12px 14px;margin-bottom:16px">
-        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#888;margin-bottom:4px">Facturé à</div>
-        <div style="font-size:15px;font-weight:600;color:#111">${f.client}</div>
-        ${f.tel ? `<div style="font-size:13px;color:#555">${f.tel}</div>` : ''}
-        ${f.note ? `<div style="font-size:12px;color:#777;margin-top:4px">${f.note}</div>` : ''}
+      <div class="fac-body">
+        <div class="fac-client-box">
+          <div class="fac-client-label">Facturé à</div>
+          <div class="fac-client-name">${f.client}</div>
+          ${f.tel ? `<div class="fac-client-tel">📱 ${f.tel}</div>` : ''}
+          ${f.note ? `<div style="font-size:12px;color:#777;margin-top:4px">${f.note}</div>` : ''}
+        </div>
+        <table>
+          <thead><tr><th>Article</th><th style="text-align:center">Qté</th><th style="text-align:right">P.U.</th><th>Montant</th></tr></thead>
+          <tbody>
+            ${f.lignes.map((l,i) => `<tr style="${i%2===0?'background:#fafafa':''}">
+              <td>${l.desc}</td>
+              <td style="text-align:center;color:#555">${l.qte}</td>
+              <td style="text-align:right;color:#555">${Number(l.prix).toLocaleString('fr-SN')} F</td>
+              <td style="text-align:right;font-weight:600;color:#111">${Number(l.prix*l.qte).toLocaleString('fr-SN')} F</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+        <div class="fac-total-band">
+          <div class="fac-total-label">Total à payer</div>
+          <div class="fac-total-amount">${fmt(f.total)}</div>
+        </div>
       </div>
-      <table>
-        <thead><tr><th>Article</th><th style="text-align:center">Qté</th><th style="text-align:right">P.U.</th><th>Montant</th></tr></thead>
-        <tbody>
-          ${f.lignes.map(l => `<tr>
-            <td>${l.desc}</td>
-            <td style="text-align:center">${l.qte}</td>
-            <td style="text-align:right">${Number(l.prix).toLocaleString('fr-SN')}</td>
-            <td style="text-align:right;font-weight:500">${Number(l.prix*l.qte).toLocaleString('fr-SN')}</td>
-          </tr>`).join('')}
-        </tbody>
-        <tfoot><tr class="fac-total-row">
-          <td colspan="3" style="text-align:right;border-top:2px solid #eee;padding-top:12px">TOTAL</td>
-          <td style="border-top:2px solid #eee;padding-top:12px;color:#00b37a">${fmt(f.total)}</td>
-        </tr></tfoot>
-      </table>
-      <div class="fac-footer">Merci pour votre confiance · ${shopName}</div>
+      <div class="fac-footer">Merci pour votre confiance 🙏 · <span>${shopName}</span> · Géri</div>
     </div>`;
   document.getElementById('facture-preview-wrap').innerHTML = html;
   openModal('modal-facture-view');
