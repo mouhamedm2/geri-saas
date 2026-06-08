@@ -99,7 +99,7 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
         <input class="form-input" id="signup-pwd" type="password" placeholder="Minimum 6 caractères" autocomplete="new-password">
       </div>
       <button class="btn-submit" id="btn-signup" onclick="doSignup()">Créer mon compte gratuit →</button>
-      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">30 jours d'essai gratuit · Sans carte bancaire</p>
+      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">7 jours d'essai gratuit · Sans carte bancaire</p>
     </div>
 
     <div class="divider-or">ou</div>
@@ -203,7 +203,7 @@ async function doSignup() {
       user_id: data.user.id,
       nom: boutique,
       plan: 'pro',
-      plan_expire_at: new Date(Date.now() + 30*24*60*60*1000).toISOString()
+      plan_expire_at: new Date(Date.now() + 7*24*60*60*1000).toISOString()
     });
     localStorage.setItem('geri_user_id', data.user.id);
     localStorage.setItem('geri_boutique', boutique);
