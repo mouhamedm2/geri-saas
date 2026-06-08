@@ -1,0 +1,10 @@
+{
+  "name": "geri-saas",
+  "version": "1.0.0",
+  "description": "Géri — Gestion boutique Sénégal",
+  "scripts": {
+    "dev": "npx serve public -p 3000",
+    "build": "echo 'Static — no build'",
+    "start": "npx serve public -p 3000"
+  }
+}
