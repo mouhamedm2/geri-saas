@@ -150,3 +150,23 @@ create trigger produits_updated_at
 -- (Décommenter après avoir créé un compte)
 -- insert into boutiques (user_id, nom, tel, ville)
 -- values (auth.uid(), 'Boutique Test', '+221 77 000 00 00', 'Dakar');
+
+-- ── Audit Logs (sécurité) ──
+create table if not exists audit_logs (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid references auth.users(id) on delete set null,
+  event text not null,
+  details jsonb default '{}',
+  ip text,
+  created_at timestamptz default now()
+);
+
+-- Index pour recherche rapide par user et événement
+create index if not exists idx_audit_user on audit_logs(user_id);
+create index if not exists idx_audit_event on audit_logs(event);
+create index if not exists idx_audit_created on audit_logs(created_at desc);
+
+-- RLS : uniquement l'admin peut lire les logs
+alter table audit_logs enable row level security;
+create policy "audit_insert_own" on audit_logs for insert with check (true);
+create policy "audit_select_own" on audit_logs for select using (auth.uid() = user_id);

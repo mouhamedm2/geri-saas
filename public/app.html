@@ -666,6 +666,27 @@ const _supabase = (typeof window.supabase !== 'undefined' && SUPABASE_URL.includ
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
 
+// ── Audit log helper ──
+function auditLog(event, details = {}) {
+  if (!_supabase) return;
+  const uid = localStorage.getItem('geri_user_id');
+  try {
+    _supabase.from('audit_logs').insert({
+      user_id: uid,
+      event,
+      details: { ...details, ua: navigator.userAgent.substring(0,120), ts: new Date().toISOString() }
+    });
+  } catch(e) {}
+}
+
+// ── XSS sanitizer ──
+function sanitizeInput(str) {
+  if (typeof str !== 'string') return str;
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
 const isDemo = new URLSearchParams(location.search).get('demo') === '1' || localStorage.getItem('geri_demo') === '1';
 let boutiqueId = localStorage.getItem('geri_boutique_id') || null;
 let userId = localStorage.getItem('geri_user_id') || null;

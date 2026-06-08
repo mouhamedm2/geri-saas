@@ -119,6 +119,68 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ══════════════════════════════════════
+// SÉCURITÉ — Rate limiting & CSRF & Détection suspecte
+// ══════════════════════════════════════
+
+// CSRF Token
+function generateCSRF() {
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+    .map(b => b.toString(16).padStart(2,'0')).join('');
+  sessionStorage.setItem('csrf_token', token);
+  return token;
+}
+const CSRF_TOKEN = generateCSRF();
+
+// Rate limiting login (5 tentatives max / 15 min)
+const RL_KEY = 'geri_login_attempts';
+const RL_MAX = 5;
+const RL_WINDOW = 15 * 60 * 1000; // 15 minutes
+
+function checkRateLimit() {
+  const raw = localStorage.getItem(RL_KEY);
+  const data = raw ? JSON.parse(raw) : { count: 0, since: Date.now() };
+  if (Date.now() - data.since > RL_WINDOW) {
+    localStorage.setItem(RL_KEY, JSON.stringify({ count: 0, since: Date.now() }));
+    return true;
+  }
+  if (data.count >= RL_MAX) {
+    const wait = Math.ceil((RL_WINDOW - (Date.now() - data.since)) / 60000);
+    showError(`🔒 Trop de tentatives. Réessayez dans ${wait} minute(s).`);
+    return false;
+  }
+  return true;
+}
+
+function recordFailedAttempt() {
+  const raw = localStorage.getItem(RL_KEY);
+  const data = raw ? JSON.parse(raw) : { count: 0, since: Date.now() };
+  data.count += 1;
+  localStorage.setItem(RL_KEY, JSON.stringify(data));
+  // Détection connexion suspecte : 3+ échecs
+  if (data.count >= 3) {
+    console.warn('[GERI SECURITY] Connexions suspectes détectées:', data.count, 'tentatives');
+    // Log dans Supabase si disponible
+    try {
+      sb.from('audit_logs').insert({
+        event: 'suspicious_login',
+        details: { attempts: data.count, ua: navigator.userAgent, ts: new Date().toISOString() }
+      });
+    } catch(e) {}
+  }
+}
+
+function resetRateLimit() {
+  localStorage.removeItem(RL_KEY);
+}
+
+// XSS sanitizer
+function sanitize(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
 const params = new URLSearchParams(location.search);
 const plan = params.get('plan');
 const isDemo = params.get('demo') === '1';
@@ -170,14 +232,28 @@ function hideMessages() {
 }
 
 async function doLogin() {
-  const email = document.getElementById('login-email').value.trim();
+  if (!checkRateLimit()) return;
+  const email = sanitize(document.getElementById('login-email').value.trim());
   const pwd = document.getElementById('login-pwd').value;
   if (!email || !pwd) { showError('Email et mot de passe requis'); return; }
   const btn = document.getElementById('btn-login');
   btn.disabled = true; btn.textContent = 'Connexion…';
   const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
   btn.disabled = false; btn.textContent = 'Se connecter →';
-  if (error) { showError(error.message); return; }
+  if (error) {
+    recordFailedAttempt();
+    showError('Email ou mot de passe incorrect');
+    return;
+  }
+  resetRateLimit();
+  // Audit log connexion réussie
+  try {
+    await sb.from('audit_logs').insert({
+      user_id: data.user.id,
+      event: 'login_success',
+      details: { ua: navigator.userAgent, ts: new Date().toISOString() }
+    });
+  } catch(e) {}
   localStorage.setItem('geri_user_id', data.user.id);
   localStorage.setItem('geri_email', data.user.email);
   window.location.href = 'app.html';
