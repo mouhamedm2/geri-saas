@@ -69,7 +69,7 @@ create table dettes (
   id uuid primary key default uuid_generate_v4(),
   boutique_id uuid references boutiques(id) on delete cascade not null,
   client text not null,
-  desc text,
+  description text,
   montant numeric not null,
   date date default current_date,
   date_remb date,
