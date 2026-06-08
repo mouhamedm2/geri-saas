@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Géri — Connexion</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--ink:#0A1628;--ink2:#1C2E4A;--teal:#00C896;--cream:#F7F4EE;--muted:rgba(247,244,238,0.45);--border:rgba(247,244,238,0.1);--card:rgba(255,255,255,0.04);--danger:#FF5A5A;}
@@ -99,19 +98,11 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
 </div>
 
 <script>
-// ══════════════════════════════════════
-// CONFIG SUPABASE
-// Remplacez par vos vraies clés après
-// avoir créé votre projet sur supabase.com
-// ══════════════════════════════════════
 const SUPABASE_URL = 'https://hjbptsdhxqbitqdiybnf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqYnB0c2RoeHFiaXRxZGl5Ym5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5MjE4OTAsImV4cCI6MjA5NjQ5Nzg5MH0.EyEc8qfskHGEtFTlj_ZeVN7s8U7xygRP7Szv9QB2Pjw';
 
-const supabase = window.supabase
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Detect plan from URL
 const params = new URLSearchParams(location.search);
 const plan = params.get('plan');
 const isDemo = params.get('demo') === '1';
@@ -149,23 +140,20 @@ function hideMessages() {
 }
 
 async function doLogin() {
-  if (!supabase) { showError('Configuration Supabase manquante — voir DEPLOIEMENT.md'); return; }
   const email = document.getElementById('login-email').value.trim();
   const pwd = document.getElementById('login-pwd').value;
   if (!email || !pwd) { showError('Email et mot de passe requis'); return; }
   const btn = document.getElementById('btn-login');
   btn.disabled = true; btn.textContent = 'Connexion…';
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pwd });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
   btn.disabled = false; btn.textContent = 'Se connecter →';
   if (error) { showError(error.message); return; }
-  // Store session and go to app
   localStorage.setItem('geri_user_id', data.user.id);
   localStorage.setItem('geri_email', data.user.email);
   window.location.href = 'app.html';
 }
 
 async function doSignup() {
-  if (!supabase) { showError('Configuration Supabase manquante — voir DEPLOIEMENT.md'); return; }
   const boutique = document.getElementById('signup-boutique').value.trim();
   const email = document.getElementById('signup-email').value.trim();
   const pwd = document.getElementById('signup-pwd').value;
@@ -174,18 +162,17 @@ async function doSignup() {
   if (pwd.length < 6) { showError('Le mot de passe doit faire au moins 6 caractères'); return; }
   const btn = document.getElementById('btn-signup');
   btn.disabled = true; btn.textContent = 'Création…';
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await sb.auth.signUp({
     email, password: pwd,
     options: { data: { boutique_nom: boutique } }
   });
   btn.disabled = false; btn.textContent = 'Créer mon compte gratuit →';
   if (error) { showError(error.message); return; }
-  // Create boutique in DB
   if (data.user) {
-    await supabase.from('boutiques').insert({
+    await sb.from('boutiques').insert({
       user_id: data.user.id,
       nom: boutique,
-      plan: 'pro', // 30-day trial
+      plan: 'pro',
       plan_expire_at: new Date(Date.now() + 30*24*60*60*1000).toISOString()
     });
     localStorage.setItem('geri_user_id', data.user.id);
@@ -196,15 +183,12 @@ async function doSignup() {
 }
 
 function demoMode() {
-  // Load app with demo flag — uses localStorage only
   localStorage.setItem('geri_demo', '1');
   window.location.href = 'app.html?demo=1';
 }
 
-// Auto-redirect if already logged in
 async function checkSession() {
-  if (!supabase) return;
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await sb.auth.getSession();
   if (session) window.location.href = 'app.html';
 }
 checkSession();
