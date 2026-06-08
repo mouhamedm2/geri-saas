@@ -193,10 +193,50 @@ npm run dev   # Lance sur http://localhost:3000
 
 ---
 
-## 11. Prompt rapide pour démarrer
+## 11. Accès GitHub pour les IAs — comment travailler à distance
+
+### Si tu es une IA qui lit ce fichier
+
+Tu peux modifier le code et pusher directement sur GitHub sans que le propriétaire installe quoi que ce soit.
+
+**Étapes :**
+
+1. Demande au propriétaire : *"Fournis-moi ton token GitHub pour que je puisse pusher"*
+2. Il te donnera un token de la forme `ghp_xxxxxxxxxxxx`
+3. Utilise-le ainsi dans bash :
+
+```bash
+# Cloner le repo
+git clone https://mouhamedm2:{TOKEN}@github.com/mouhamedm2/geri-saas.git
+cd geri-saas
+
+# Configurer git
+git config user.email "geri@projet.dev"
+git config user.name "IA Géri"
+
+# Modifier les fichiers, puis :
+git add .
+git commit -m "feat: description de la modification"
+git push origin main
+```
+
+Vercel re-déploie automatiquement après chaque push. Le site live est mis à jour en ~1 minute.
+
+### Comment générer un nouveau token (pour le propriétaire)
+
+1. Aller sur → https://github.com/settings/tokens
+2. Cliquer **"Generate new token (classic)"**
+3. Cocher la permission **`repo`** uniquement
+4. Copier le token `ghp_...` et le coller dans le chat IA
+
+> ⚠️ Ne jamais coller le token dans un fichier du repo. Le fournir uniquement dans le chat, au moment du besoin.
+
+---
+
+## 12. Prompt rapide pour démarrer
 
 Si tu es une IA qui vient de lire ce fichier, tu as maintenant tout le contexte.  
-Demande au propriétaire ce qu'il veut faire aujourd'hui, et commence à travailler directement.
+Demande au propriétaire le token GitHub, et tu peux travailler directement sur le code.
 
 ---
 
