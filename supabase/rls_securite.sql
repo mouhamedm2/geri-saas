@@ -1,53 +1,59 @@
 -- ═══════════════════════════════════════════════════════
--- VÉRIFICATION ET ACTIVATION RLS SUR TOUTES LES TABLES
+-- RLS SÉCURITÉ — GÉRI SAAS
+-- Tables réelles : boutiques, employes, produits, ventes, dettes, factures, audit_logs
 -- À exécuter dans Supabase > SQL Editor
 -- ═══════════════════════════════════════════════════════
 
--- Activer RLS sur toutes les tables métier
-ALTER TABLE boutiques ENABLE ROW LEVEL SECURITY;
-ALTER TABLE produits ENABLE ROW LEVEL SECURITY;
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ventes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE vente_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE employes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
-ALTER TABLE depenses ENABLE ROW LEVEL SECURITY;
-ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+-- 1. Activer RLS sur toutes les tables
+ALTER TABLE boutiques    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE employes     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE produits     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ventes       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE dettes       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE factures     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_logs   ENABLE ROW LEVEL SECURITY;
 
--- Policies boutiques : lecture/écriture uniquement pour le propriétaire
+-- 2. BOUTIQUES — propriétaire uniquement
 DROP POLICY IF EXISTS "boutiques_owner" ON boutiques;
 CREATE POLICY "boutiques_owner" ON boutiques
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
--- Policies pour tables liées à boutique_id
--- (produits, categories, ventes, employes, clients, depenses)
-DO $$
-DECLARE
-  tbl TEXT;
-BEGIN
-  FOREACH tbl IN ARRAY ARRAY['produits','categories','ventes','employes','clients','depenses']
-  LOOP
-    EXECUTE format('DROP POLICY IF EXISTS "%s_boutique_owner" ON %s', tbl, tbl);
-    EXECUTE format('
-      CREATE POLICY "%s_boutique_owner" ON %s
-      USING (boutique_id IN (SELECT id FROM boutiques WHERE user_id = auth.uid()))
-      WITH CHECK (boutique_id IN (SELECT id FROM boutiques WHERE user_id = auth.uid()))',
-      tbl, tbl);
-  END LOOP;
-END $$;
+-- 3. Tables liées via boutique_id
+DROP POLICY IF EXISTS "employes_owner"  ON employes;
+DROP POLICY IF EXISTS "produits_owner"  ON produits;
+DROP POLICY IF EXISTS "ventes_owner"    ON ventes;
+DROP POLICY IF EXISTS "dettes_owner"    ON dettes;
+DROP POLICY IF EXISTS "factures_owner"  ON factures;
 
--- Vente_items via ventes
-DROP POLICY IF EXISTS "vente_items_owner" ON vente_items;
-CREATE POLICY "vente_items_owner" ON vente_items
-  USING (vente_id IN (
-    SELECT v.id FROM ventes v
-    JOIN boutiques b ON b.id = v.boutique_id
-    WHERE b.user_id = auth.uid()
-  ));
+CREATE POLICY "employes_owner" ON employes
+  USING  (boutique_id IN (SELECT id FROM boutiques WHERE user_id = auth.uid()))
+  WITH CHECK (boutique_id IN (SELECT id FROM boutiques WHERE user_id = auth.uid()));
 
--- Vérification finale
-SELECT schemaname, tablename, rowsecurity
+CREATE POLICY "produits_owner" ON produits
+  USING  (boutique_id IN (SELECT id FROM boutiques WHERE user_id = auth.uid()))
+  WITH CHECK (boutique_id IN (SELECT id FROM boutiques WHERE user_id = auth.uid()));
+
+CREATE POLICY "ventes_owner" ON ventes
+  USING  (boutique_id IN (SELECT id FROM boutiques WHERE user_id = auth.uid()))
+  WITH CHECK (boutique_id IN (SELECT id FROM boutiques WHERE user_id = auth.uid()));
+
+CREATE POLICY "dettes_owner" ON dettes
+  USING  (boutique_id IN (SELECT id FROM boutiques WHERE user_id = auth.uid()))
+  WITH CHECK (boutique_id IN (SELECT id FROM boutiques WHERE user_id = auth.uid()));
+
+CREATE POLICY "factures_owner" ON factures
+  USING  (boutique_id IN (SELECT id FROM boutiques WHERE user_id = auth.uid()))
+  WITH CHECK (boutique_id IN (SELECT id FROM boutiques WHERE user_id = auth.uid()));
+
+-- 4. AUDIT LOGS
+DROP POLICY IF EXISTS "audit_insert_own" ON audit_logs;
+DROP POLICY IF EXISTS "audit_select_own" ON audit_logs;
+CREATE POLICY "audit_insert_own" ON audit_logs FOR INSERT WITH CHECK (true);
+CREATE POLICY "audit_select_own" ON audit_logs FOR SELECT USING (auth.uid() = user_id);
+
+-- 5. Vérification finale
+SELECT tablename, rowsecurity
 FROM pg_tables
 WHERE schemaname = 'public'
 ORDER BY tablename;
