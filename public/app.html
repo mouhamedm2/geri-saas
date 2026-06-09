@@ -1780,14 +1780,40 @@ function texteFacture(id) {
 
 function partagerWhatsApp() {
   const f = factures.find(f => f.id === currentFactureId);
-  const txt = texteFacture(currentFactureId);
-  const tel = f && f.tel ? f.tel.replace(/\D/g, '') : '';
-  const url = tel
-    ? `https://wa.me/${tel.startsWith('221')?tel:'221'+tel}?text=${encodeURIComponent(txt)}`
-    : `https://wa.me/?text=${encodeURIComponent(txt)}`;
-  window.open(url, '_blank');
-  if (f) { f.statut = 'envoyée'; save(); render(); }
-  toast('Ouverture WhatsApp…');
+  if (!f) return;
+  // Générer le PDF d'abord, puis envoyer le message WhatsApp avec lien
+  const printZone = document.getElementById('fac-print-zone');
+  if (printZone && window.print) {
+    // Message WhatsApp structuré avec émojis (lisible sans HTML)
+    const shopName = DB.get('shopname') || 'Ma Boutique';
+    const lignes = f.lignes.map(l =>
+      `  • ${l.desc} × ${l.qte} — ${Number(l.prix*l.qte).toLocaleString('fr-SN')} FCFA`
+    ).join('\n');
+    const msg =
+`━━━━━━━━━━━━━━━━━━━
+🧾 *FACTURE ${f.num}*
+━━━━━━━━━━━━━━━━━━━
+🏪 *${shopName}*
+📅 ${formatDate(f.date)}
+👤 Client : *${f.client}*${f.tel ? '\n📱 ' + f.tel : ''}
+
+📦 *Détail :*
+${lignes}
+
+━━━━━━━━━━━━━━━━━━━
+💰 *TOTAL : ${fmt(f.total)}*
+━━━━━━━━━━━━━━━━━━━
+_Merci pour votre confiance 🙏_
+_${shopName} · via Géri_`;
+
+    const tel = f.tel ? f.tel.replace(/\D/g, '') : '';
+    const waUrl = tel
+      ? `https://wa.me/${tel.startsWith('221')?tel:'221'+tel}?text=${encodeURIComponent(msg)}`
+      : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, '_blank');
+    f.statut = 'envoyée'; save(); render();
+    toast('✅ WhatsApp ouvert avec la facture formatée');
+  }
 }
 
 function partagerSMS() {
@@ -1922,13 +1948,35 @@ function afficherRecu(v) {
 
 function partagerRecuWhatsApp() {
   if (!lastVente) return;
-  const tel = (lastVente.clientTel || '').replace(/\D/g,'');
-  const txt = texteRecu(lastVente);
+  const v = lastVente;
+  const shop = DB.get('shopname') || 'Ma Boutique';
+  const footer = DB.get('shopfooter') || 'Merci pour votre achat !';
+  const lignes = v.items.map(i =>
+    `  • ${i.nom} × ${i.qte} — ${Number(i.prix*i.qte).toLocaleString('fr-SN')} FCFA`
+  ).join('\n');
+  const msg =
+`━━━━━━━━━━━━━━━━━━━
+🧾 *REÇU DE VENTE*
+━━━━━━━━━━━━━━━━━━━
+🏪 *${shop}*
+📅 ${v.date} à ${v.heure}${v.client ? '\n👤 ' + v.client : ''}${v.vendeur ? '\n🙋 ' + v.vendeur : ''}
+
+📦 *Articles :*
+${lignes}
+
+━━━━━━━━━━━━━━━━━━━
+💰 *TOTAL : ${fmt(v.total)}*
+💳 ${(v.modePaiement||'').toUpperCase()}
+━━━━━━━━━━━━━━━━━━━
+_${footer}_
+_${shop} · via Géri_`;
+
+  const tel = (v.clientTel || '').replace(/\D/g,'');
   const url = tel
-    ? `https://wa.me/${tel.startsWith('221')?tel:'221'+tel}?text=${encodeURIComponent(txt)}`
-    : `https://wa.me/?text=${encodeURIComponent(txt)}`;
+    ? `https://wa.me/${tel.startsWith('221')?tel:'221'+tel}?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
   window.open(url, '_blank');
-  toast('Ouverture WhatsApp…');
+  toast('✅ WhatsApp ouvert avec le reçu formaté');
 }
 
 function copierRecu() {
