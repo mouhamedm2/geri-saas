@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fond rond -->
+  <rect width="512" height="512" rx="120" fill="#0A1628"/>
+  <!-- Arc décoratif -->
+  <circle cx="256" cy="256" r="185" fill="none" stroke="#00C896" stroke-width="18" stroke-dasharray="420 160" stroke-dashoffset="-80"/>
+  <!-- Lettre G stylisée -->
+  <text x="256" y="330" font-family="Arial Black, sans-serif" font-size="240" font-weight="900"
+    fill="#00C896" text-anchor="middle" letter-spacing="-8">G</text>
+  <!-- Point doré -->
+  <circle cx="370" cy="185" r="28" fill="#F5C842"/>
+</svg>

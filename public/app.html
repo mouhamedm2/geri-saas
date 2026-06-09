@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0A1628">
 <title>Géri — Gestion Boutique Sénégal</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="apple-touch-icon" href="logo.svg">
+<link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -862,7 +865,8 @@ function toast(msg) {
 function fmt(n) { return Number(n||0).toLocaleString('fr-SN') + ' FCFA'; }
 function fmtShort(n) { if(n>=1000000) return (n/1000000).toFixed(1)+'M'; if(n>=1000) return (n/1000).toFixed(0)+'k'; return n; }
 function today() { return new Date().toISOString().split('T')[0]; }
-function now() { return new Date().toLocaleTimeString('fr-SN', {hour:'2-digit', minute:'2-digit'}); }
+function now() { return new Date().toLocaleTimeString('fr-SN', {hour:'2-digit', minute:'2-digit', second:'2-digit'}); }
+function nowShort() { return new Date().toLocaleTimeString('fr-SN', {hour:'2-digit', minute:'2-digit'}); }
 function stockBadge(p) {
   if (p.stock === 0) return `<span class="badge badge-out">Rupture</span>`;
   if (p.stock <= p.alerte) return `<span class="badge badge-low">Stock bas</span>`;
@@ -1629,8 +1633,13 @@ function formatDate(ds) {
 // FACTURES
 // ═══════════════════════════════════════
 function genNumFacture() {
-  const n = (factures.length + 1).toString().padStart(3, '0');
-  return 'FAC-' + n;
+  if (!factures.length) return 'FAC-001';
+  const nums = factures.map(f => {
+    const m = (f.num || '').match(/(\d+)$/);
+    return m ? parseInt(m[1]) : 0;
+  });
+  const next = Math.max(...nums) + 1;
+  return 'FAC-' + next.toString().padStart(3, '0');
 }
 
 function ouvrirNouvelleFacture() {
@@ -1699,6 +1708,7 @@ function sauvegarderFacture() {
     total,
     statut: 'brouillon',
     createdAt: today(),
+    heureCreation: now(),
   };
   if (currentFactureId) {
     const idx = factures.findIndex(f => f.id === currentFactureId);
@@ -1781,7 +1791,7 @@ function buildFactureHTML(f) {
         <div style="text-align:right">
           <div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.35)">FACTURE</div>
           <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-top:2px">${f.num}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px">Émise le ${formatDate(f.date)}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px">Émise le ${formatDate(f.date)}${f.heureCreation ? ' à ' + f.heureCreation : ''}</div>
         </div>
       </div>
 

@@ -1,0 +1,13 @@
+{
+  "name": "Géri — Gestion Boutique",
+  "short_name": "Géri",
+  "description": "Gérez votre boutique depuis votre téléphone",
+  "start_url": "/app.html",
+  "display": "standalone",
+  "background_color": "#0A1628",
+  "theme_color": "#0A1628",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
