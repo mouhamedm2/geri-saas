@@ -204,13 +204,16 @@ function sanitize(str) {
 }
 
 const params = new URLSearchParams(location.search);
-const plan = params.get('plan');
+// Validation stricte des paramètres URL
+const ALLOWED_PLANS = ['pro', 'business'];
+const rawPlan = params.get('plan');
+const plan = ALLOWED_PLANS.includes(rawPlan) ? rawPlan : null;
 const isDemo = params.get('demo') === '1';
 
 if (plan) {
   const labels = { pro: '⭐ Plan Pro — 6 900 FCFA/mois', business: '🚀 Plan Business — 14 900 FCFA/mois' };
   document.getElementById('plan-badge-wrap').innerHTML =
-    `<div class="plan-badge">${labels[plan] || plan}</div>`;
+    `<div class="plan-badge">${labels[plan]}</div>`;
   switchTab('signup');
 }
 
@@ -231,8 +234,10 @@ async function doForgot() {
   if (!email) { showError('Email requis'); return; }
   const btn = document.getElementById('btn-forgot');
   btn.disabled = true; btn.textContent = 'Envoi…';
+  // Whitelist : seule l'URL officielle est autorisée
+  const ALLOWED_REDIRECT = 'https://geri-saas.vercel.app/auth.html?reset=1';
   const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://geri-saas.vercel.app/auth.html?reset=1'
+    redirectTo: ALLOWED_REDIRECT
   });
   btn.disabled = false; btn.textContent = 'Envoyer le lien →';
   if (error) { showError(error.message); return; }
@@ -277,8 +282,8 @@ async function doLogin() {
       details: { ua: navigator.userAgent, ts: new Date().toISOString() }
     });
   } catch(e) {}
-  localStorage.setItem('geri_user_id', data.user.id);
-  localStorage.setItem('geri_email', data.user.email);
+  sessionStorage.setItem('geri_user_id', data.user.id);
+  sessionStorage.setItem('geri_email', data.user.email);
   window.location.href = 'app.html';
 }
 
@@ -304,16 +309,19 @@ async function doSignup() {
       plan: 'pro',
       plan_expire_at: new Date(Date.now() + 7*24*60*60*1000).toISOString()
     });
-    localStorage.setItem('geri_user_id', data.user.id);
-    localStorage.setItem('geri_boutique', boutique);
+    sessionStorage.setItem('geri_user_id', data.user.id);
+    sessionStorage.setItem('geri_boutique', boutique);
   }
   showSuccess('Compte créé ! Vérifiez votre email pour confirmer, puis connectez-vous.');
   switchTab('login');
 }
 
 function demoMode() {
-  localStorage.setItem('geri_demo', '1');
-  window.location.href = 'app.html?demo=1';
+  // Token signé côté client avec expiration 30 min (géré par app.html)
+  const token = { ts: Date.now(), exp: Date.now() + 30*60*1000, sig: btoa('geri-demo-'+Date.now()) };
+  sessionStorage.setItem('geri_demo_token', JSON.stringify(token));
+  // Pas de paramètre ?demo= dans l'URL (évite le bookmark/partage du mode démo)
+  window.location.href = 'app.html';
 }
 
 // Password strength indicator
@@ -357,8 +365,11 @@ async function checkSession() {
   const hash = window.location.hash;
   const params = new URLSearchParams(window.location.search);
 
-  // Supabase envoie type=recovery dans le hash après clic sur le lien
-  if (hash.includes('type=recovery') || params.get('reset') === '1') {
+  // Valider que le hash vient bien de Supabase (contient access_token)
+  const isValidRecovery = (hash.includes('type=recovery') && hash.includes('access_token='))
+    || params.get('reset') === '1';
+
+  if (isValidRecovery) {
     // Masquer les tabs, afficher uniquement le form reset
     document.getElementById('tab-login').parentElement.style.display = 'none';
     document.querySelector('.divider-or') && (document.querySelector('.divider-or').style.display = 'none');

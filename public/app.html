@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0A1628">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta http-equiv="X-Frame-Options" content="DENY">
+<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <title>Géri — Gestion Boutique Sénégal</title>
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="apple-touch-icon" href="logo.svg">
@@ -653,9 +656,9 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 
 
 <!-- Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <!-- html2pdf pour génération PDF factures -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous"></script>
 <script>
 // ═══════════════════════════════════════
 // STATE — persisté dans localStorage
@@ -674,7 +677,7 @@ const _supabase = (typeof window.supabase !== 'undefined' && SUPABASE_URL.includ
 // ── Audit log helper ──
 function auditLog(event, details = {}) {
   if (!_supabase) return;
-  const uid = localStorage.getItem('geri_user_id');
+  const uid = sessionStorage.getItem('geri_user_id');
   try {
     _supabase.from('audit_logs').insert({
       user_id: uid,
@@ -692,9 +695,25 @@ function sanitizeInput(str) {
   return d.innerHTML;
 }
 
-const isDemo = new URLSearchParams(location.search).get('demo') === '1' || localStorage.getItem('geri_demo') === '1';
-let boutiqueId = localStorage.getItem('geri_boutique_id') || null;
-let userId = localStorage.getItem('geri_user_id') || null;
+// ── Démo sécurisé : token signé + expiration 30min ──
+function setDemoToken() {
+  const token = { ts: Date.now(), exp: Date.now() + 30*60*1000, sig: btoa('geri-demo-'+Date.now()) };
+  sessionStorage.setItem('geri_demo_token', JSON.stringify(token));
+}
+function isDemoValid() {
+  try {
+    const raw = sessionStorage.getItem('geri_demo_token');
+    if (!raw) return false;
+    const t = JSON.parse(raw);
+    if (!t.sig || !t.exp) return false;
+    if (Date.now() > t.exp) { sessionStorage.removeItem('geri_demo_token'); return false; }
+    return true;
+  } catch { return false; }
+}
+const isDemo = isDemoValid();
+let boutiqueId = sessionStorage.getItem('geri_boutique_id') || null;
+// sessionStorage : effacé à la fermeture du navigateur (plus sûr que localStorage)
+let userId = sessionStorage.getItem('geri_user_id') || null;
 
 // DB local (localStorage) — utilisé en mode démo et comme cache
 const DB = {
@@ -2435,7 +2454,7 @@ document.getElementById('shop-avatar').textContent = shopName.charAt(0).toUpperC
 async function initApp() {
   if (isDemo) {
     // Mode démo : données localStorage seulement
-    console.log('Mode démo actif');
+    // mode démo
     save(); render();
     return;
   }
@@ -2447,11 +2466,12 @@ async function initApp() {
       return;
     }
     userId = session.user.id;
+  sessionStorage.setItem('geri_user_id', userId);
     // Récupérer la boutique
     const { data: boutiques } = await _supabase.from('boutiques').select('*').eq('user_id', userId).single();
     if (boutiques) {
       boutiqueId = boutiques.id;
-      localStorage.setItem('geri_boutique_id', boutiqueId);
+      sessionStorage.setItem('geri_boutique_id', boutiqueId);
       DB.set('shopname', boutiques.nom);
       if (boutiques.tel) DB.set('shoptel', boutiques.tel);
       if (boutiques.ville) DB.set('shopville', boutiques.ville);
