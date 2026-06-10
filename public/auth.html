@@ -118,16 +118,13 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
       </div>
       <div class="form-group">
         <label class="form-label">Mot de passe *</label>
-        <input class="form-input" id="signup-pwd" type="password" placeholder="Minimum 6 caractères" autocomplete="new-password">
+        <input class="form-input" id="signup-pwd" type="password" placeholder="Minimum 8 caractères" autocomplete="new-password">
       </div>
       <button class="btn-submit" id="btn-signup" onclick="doSignup()">Créer mon compte gratuit →</button>
       <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">7 jours d'essai gratuit · Sans carte bancaire</p>
     </div>
 
-    <div class="divider-or">ou</div>
-    <button class="btn-demo" onclick="demoMode()">
-      👀 Essayer la démo sans compte
-    </button>
+
   </div>
 
   <div class="auth-footer">
@@ -293,7 +290,7 @@ async function doSignup() {
   const pwd = document.getElementById('signup-pwd').value;
   if (!boutique) { showError('Le nom de votre boutique est obligatoire'); return; }
   if (!email) { showError('Email requis'); return; }
-  if (pwd.length < 6) { showError('Le mot de passe doit faire au moins 6 caractères'); return; }
+  if (pwd.length < 8) { showError('Le mot de passe doit faire au moins 8 caractères'); return; }
   const btn = document.getElementById('btn-signup');
   btn.disabled = true; btn.textContent = 'Création…';
   const { data, error } = await sb.auth.signUp({
