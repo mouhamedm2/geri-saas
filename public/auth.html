@@ -208,7 +208,7 @@ const plan = ALLOWED_PLANS.includes(rawPlan) ? rawPlan : null;
 const isDemo = params.get('demo') === '1';
 
 if (plan) {
-  const labels = { pro: '⭐ Plan Pro — 6 900 FCFA/mois', business: '🚀 Plan Business — 14 900 FCFA/mois' };
+  const labels = { pro: '⭐ Plan Pro — 4 900 FCFA/mois', business: '🚀 Plan Business — 14 900 FCFA/mois' };
   document.getElementById('plan-badge-wrap').innerHTML =
     `<div class="plan-badge">${labels[plan]}</div>`;
   switchTab('signup');
