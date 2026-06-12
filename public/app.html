@@ -8,7 +8,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0A1628">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
-<meta http-equiv="X-Frame-Options" content="DENY">
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 <title>Géri — Gestion Boutique Sénégal</title>
 <link rel="icon" type="image/svg+xml" href="logo.svg">
@@ -798,8 +797,8 @@ function showPaywall(boutique, email, reason) {
           <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#00C896;margin-bottom:6px">Plan Pro</div>
           <div style="font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:#F7F4EE">4 900 <span style="font-size:14px;font-weight:400;color:rgba(247,244,238,0.5)">FCFA/mois</span></div>
           <ul style="list-style:none;margin:14px 0;text-align:left;">
-            ${['Produits illimités','Factures PDF WhatsApp','Rapports complets','Jusqu'à 3 employés'].map(f => 
-              `<li style="font-size:13px;color:rgba(247,244,238,0.8);padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);">✓ ${f}</li>`
+            ${['Produits illim\u00e9t\u00e9s','Factures PDF WhatsApp','Rapports complets','Jusqu\u0027\u00e0 3 employ\u00e9s'].map(f => 
+              '<li style="font-size:13px;color:rgba(247,244,238,0.8);padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);">\u2713 ' + f + '</li>'
             ).join('')}
           </ul>
           <button onclick="initiatePayment('pro','${email}')" 
