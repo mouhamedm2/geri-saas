@@ -1209,18 +1209,69 @@ function beneficeAujourdhui() { return ventesAujourdhui().reduce((s,v) => s + (v
 // ═══════════════════════════════════════
 // RENDER PRINCIPAL
 // ═══════════════════════════════════════
+// Cache dashboard pour éviter recalcul inutile
+let _dashCache = null;
+let _dashCacheKey = '';
+
 function render() {
   const c = document.getElementById('content');
-  if (currentPage === 'dashboard') c.innerHTML = renderDashboard();
-  else if (currentPage === 'ventes') c.innerHTML = renderVentes();
-  else if (currentPage === 'stock') c.innerHTML = renderStock();
-  else if (currentPage === 'caisse') c.innerHTML = renderCaisse();
-  else if (currentPage === 'rapport') c.innerHTML = renderRapport();
-  else if (currentPage === 'dettes') c.innerHTML = renderDettes();
-  else if (currentPage === 'factures') c.innerHTML = renderFactures();
-  else if (currentPage === 'clients') c.innerHTML = renderClients();
-  else if (currentPage === 'employes') c.innerHTML = renderEmployes();
-  else if (currentPage === 'parametres') c.innerHTML = renderParametres();
+  if (!c) return;
+
+  // Affichage immédiat d'un skeleton si dashboard
+  if (currentPage === 'dashboard') {
+    const cacheKey = dashPeriod + '_' + ventes.length + '_' + produits.length;
+    if (_dashCache && _dashCacheKey === cacheKey) {
+      c.innerHTML = _dashCache;
+      return;
+    }
+    // Skeleton pendant le calcul
+    c.innerHTML = renderSkeleton();
+    requestAnimationFrame(() => {
+      const html = renderDashboard();
+      _dashCache = html;
+      _dashCacheKey = cacheKey;
+      c.innerHTML = html;
+    });
+    return;
+  }
+
+  // Autres pages : rendu direct sans skeleton
+  const fns = {
+    ventes: renderVentes,
+    stock: renderStock,
+    caisse: renderCaisse,
+    rapport: renderRapport,
+    dettes: renderDettes,
+    factures: renderFactures,
+    clients: renderClients,
+    employes: renderEmployes,
+    parametres: renderParametres,
+  };
+  if (fns[currentPage]) c.innerHTML = fns[currentPage]();
+}
+
+function invalidateDashCache() {
+  _dashCache = null;
+  _dashCacheKey = '';
+}
+
+function renderSkeleton() {
+  return `<div style="animation:pulse 1.2s ease-in-out infinite">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      ${[1,2,3,4].map(()=>`<div style="height:70px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid var(--border)"></div>`).join('')}
+    </div>
+    <div style="height:16px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:14px;width:40%"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+      ${[1,2,3].map(()=>`<div style="height:60px;background:rgba(255,255,255,0.04);border-radius:10px;border:1px solid var(--border)"></div>`).join('')}
+    </div>
+    <div style="height:160px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid var(--border);margin-bottom:12px"></div>
+    <div style="height:120px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid var(--border);margin-bottom:12px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="height:180px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid var(--border)"></div>
+      <div style="height:180px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid var(--border)"></div>
+    </div>
+  </div>
+  <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}</style>`;
 }
 
 // ═══════════════════════════════════════
@@ -1228,26 +1279,35 @@ function render() {
 // ═══════════════════════════════════════
 
 function getCAperiode(days) {
-  const dates = [];
+  // Construire un index date → ventes pour éviter O(n²)
+  const index = {};
+  ventes.forEach(v => {
+    if (!index[v.date]) index[v.date] = { ca: 0, nb: 0 };
+    index[v.date].ca += v.total;
+    index[v.date].nb += 1;
+  });
+  const result = [];
   for (let i = days-1; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate()-i);
-    dates.push(d.toISOString().split('T')[0]);
+    const ds = d.toISOString().split('T')[0];
+    result.push({ date: ds, ca: index[ds]?.ca || 0, nb: index[ds]?.nb || 0 });
   }
-  return dates.map(ds => ({
-    date: ds,
-    ca: ventes.filter(v=>v.date===ds).reduce((s,v)=>s+v.total,0),
-    nb: ventes.filter(v=>v.date===ds).length
-  }));
+  return result;
 }
 
+// Cache top produits (recalculé seulement si ventes change)
+let _topCache = null, _topCacheLen = -1;
 function getTopProduits(limit=5) {
+  if (_topCache && _topCacheLen === ventes.length) return _topCache.slice(0,limit);
   const counts = {};
-  ventes.forEach(v => v.items.forEach(i => {
+  ventes.forEach(v => (v.items||[]).forEach(i => {
     if (!counts[i.nom]) counts[i.nom] = {nom:i.nom, qte:0, ca:0};
     counts[i.nom].qte += i.qte;
-    counts[i.nom].ca += i.prix * i.qte;
+    counts[i.nom].ca += (i.prix||0) * (i.qte||1);
   }));
-  return Object.values(counts).sort((a,b)=>b.ca-a.ca).slice(0,limit);
+  _topCache = Object.values(counts).sort((a,b)=>b.ca-a.ca);
+  _topCacheLen = ventes.length;
+  return _topCache.slice(0,limit);
 }
 
 function getModesPaiement() {
@@ -1531,6 +1591,7 @@ function renderDashboard() {
 
 function changerPeriodeDash(d) {
   dashPeriod = d;
+  invalidateDashCache();
   render();
   // Scroll vers analytics
   setTimeout(() => {
