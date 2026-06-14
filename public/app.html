@@ -1320,51 +1320,72 @@ function getModesPaiement() {
 }
 
 function svgBarChart(data, valueKey, labelKey, opts={}) {
-  const { h=80, color='#00C896', accent=true } = opts;
+  const { h=80, accent=true } = opts;
+  const n = data.length;
   const max = Math.max(...data.map(d=>d[valueKey]), 1);
-  const barW = Math.min(36, Math.floor(280 / data.length) - 6);
-  const gap = 6;
-  const svgW = data.length * (barW + gap);
+
+  // Adapter selon le nombre de barres
+  const viewW = 320;
+  const barW = Math.max(4, Math.floor((viewW - 8) / n) - 4);
+  const gap = Math.max(2, Math.floor((viewW - n*barW) / (n+1)));
+  const totalW = n * (barW + gap) + gap;
+
+  // Afficher les labels seulement si assez de place
+  const showAllLabels = n <= 14;
+  const showEvery = n <= 30 ? 5 : 10; // tous les N jours
+
   const bars = data.map((d,i) => {
-    const bh = Math.max(3, Math.round(d[valueKey]/max*h));
-    const x = i*(barW+gap), y = h-bh;
-    const isLast = accent && i === data.length-1;
-    const fill = isLast ? '#00C896' : 'rgba(0,200,150,0.25)';
+    const bh = Math.max(2, Math.round(d[valueKey]/max*h));
+    const x = gap + i*(barW+gap);
+    const y = h - bh;
+    const today = i === n-1;
+    const fill = today ? '#00C896' : d[valueKey] > 0 ? 'rgba(0,200,150,0.35)' : 'rgba(255,255,255,0.04)';
     const val = d[valueKey] >= 1000000 ? (d[valueKey]/1000000).toFixed(1)+'M'
-               : d[valueKey] >= 1000 ? (d[valueKey]/1000).toFixed(0)+'k'
-               : String(d[valueKey]);
-    return `<rect x="${x}" y="${y}" width="${barW}" height="${bh}" rx="5" fill="${fill}"/>
-      <text x="${x+barW/2}" y="${h+14}" text-anchor="middle" font-size="9" fill="rgba(247,244,238,0.4)" font-family="DM Sans">${d[labelKey]}</text>
-      ${d[valueKey]>0?`<text x="${x+barW/2}" y="${y-4}" text-anchor="middle" font-size="8" fill="#00C896" font-weight="700">${val}</text>`:''}`;
+              : d[valueKey] >= 1000 ? (d[valueKey]/1000).toFixed(0)+'k'
+              : d[valueKey] > 0 ? String(d[valueKey]) : '';
+    const showLabel = showAllLabels || i % showEvery === 0 || today;
+    return `<rect x="${x}" y="${y}" width="${barW}" height="${bh}" rx="${Math.min(3,barW/2)}" fill="${fill}"/>
+      ${showLabel ? `<text x="${x+barW/2}" y="${h+14}" text-anchor="middle" font-size="8" fill="rgba(247,244,238,0.4)" font-family="DM Sans">${d[labelKey]}</text>` : ''}
+      ${d[valueKey]>0 && barW>=12 ? `<text x="${x+barW/2}" y="${y-3}" text-anchor="middle" font-size="7" fill="#00C896" font-weight="700">${val}</text>` : ''}`;
   }).join('');
-  return `<svg width="100%" viewBox="0 0 ${svgW} ${h+22}" xmlns="http://www.w3.org/2000/svg">${bars}</svg>`;
+
+  return `<svg width="100%" viewBox="0 0 ${totalW} ${h+22}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">${bars}</svg>`;
 }
 
 function svgLineChart(data, valueKey, labelKey) {
-  const h = 80, padL = 8, padR = 8;
+  const h = 80, padL = 10, padR = 10;
   const max = Math.max(...data.map(d=>d[valueKey]), 1);
   const n = data.length;
-  const svgW = 300;
+  const svgW = 320;
   const step = (svgW - padL - padR) / Math.max(n-1, 1);
   const points = data.map((d,i) => {
     const x = padL + i*step;
-    const y = 8 + (1 - d[valueKey]/max) * (h-16);
-    return {x, y, val: d[valueKey], label: d[labelKey]};
+    const y = 10 + (1 - d[valueKey]/max) * (h-20);
+    return {x, y, val: d[valueKey], label: d[labelKey], i};
   });
   const polyline = points.map(p=>`${p.x},${p.y}`).join(' ');
   const area = `${padL},${h} ` + points.map(p=>`${p.x},${p.y}`).join(' ') + ` ${svgW-padR},${h}`;
-  const dots = points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#00C896"/>`).join('');
-  return `<svg width="100%" viewBox="0 0 ${svgW} ${h+20}" xmlns="http://www.w3.org/2000/svg">
-    <defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#00C896" stop-opacity="0.18"/>
-      <stop offset="100%" stop-color="#00C896" stop-opacity="0.01"/>
-    </linearGradient></defs>
+
+  // Labels : seulement début, fin, et jalons selon période
+  const showEvery = n <= 7 ? 1 : n <= 14 ? 2 : n <= 31 ? 7 : 15;
+  const labelPts = points.filter(p => p.i===0 || p.i===n-1 || p.i % showEvery === 0);
+
+  // Dots : seulement si peu de points
+  const dots = n <= 14 ? points.map(p =>
+    `<circle cx="${p.x}" cy="${p.y}" r="${p.i===n-1?4:2.5}" fill="${p.i===n-1?'#00C896':'rgba(0,200,150,0.6)'}"/>`
+  ).join('') : `<circle cx="${points[n-1].x}" cy="${points[n-1].y}" r="4" fill="#00C896"/>`;
+
+  return `<svg width="100%" viewBox="0 0 ${svgW} ${h+20}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#00C896" stop-opacity="0.2"/>
+        <stop offset="100%" stop-color="#00C896" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
     <polygon points="${area}" fill="url(#areaGrad)"/>
-    <polyline points="${polyline}" fill="none" stroke="#00C896" stroke-width="2" stroke-linejoin="round"/>
+    <polyline points="${polyline}" fill="none" stroke="#00C896" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
     ${dots}
-    ${points.filter((_,i)=>i===0||i===n-1||n<=7).map(p=>`
-      <text x="${p.x}" y="${h+14}" text-anchor="middle" font-size="9" fill="rgba(247,244,238,0.4)" font-family="DM Sans">${p.label}</text>
-    `).join('')}
+    ${labelPts.map(p=>`<text x="${Math.min(Math.max(p.x,18),svgW-18)}" y="${h+14}" text-anchor="middle" font-size="8" fill="rgba(247,244,238,0.45)" font-family="DM Sans">${p.label}</text>`).join('')}
   </svg>`;
 }
 
