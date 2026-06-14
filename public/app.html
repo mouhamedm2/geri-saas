@@ -372,6 +372,67 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 </div>
 
 <!-- Modals -->
+<!-- MODAL SCAN PHOTO -->
+<div class="modal-overlay" id="modal-scan" style="align-items:flex-end">
+  <div class="modal" style="padding-bottom:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="modal-title" style="margin:0">📷 Scanner un produit</div>
+      <button onclick="fermerScan()" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+    </div>
+
+    <!-- Aperçu caméra -->
+    <div id="scan-camera-zone" style="position:relative;border-radius:14px;overflow:hidden;background:#000;margin-bottom:14px;min-height:220px;display:flex;align-items:center;justify-content:center">
+      <video id="scan-video" autoplay playsinline style="width:100%;border-radius:14px;display:none"></video>
+      <canvas id="scan-canvas" style="display:none"></canvas>
+      <!-- Viseur -->
+      <div id="scan-viewfinder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+        <div style="width:180px;height:180px;border:2px solid var(--teal);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.4)">
+          <div style="position:absolute;top:0;left:0;width:24px;height:24px;border-top:3px solid var(--teal);border-left:3px solid var(--teal);border-radius:4px 0 0 0"></div>
+          <div style="position:absolute;top:0;right:0;width:24px;height:24px;border-top:3px solid var(--teal);border-right:3px solid var(--teal);border-radius:0 4px 0 0"></div>
+          <div style="position:absolute;bottom:0;left:0;width:24px;height:24px;border-bottom:3px solid var(--teal);border-left:3px solid var(--teal);border-radius:0 0 0 4px"></div>
+          <div style="position:absolute;bottom:0;right:0;width:24px;height:24px;border-bottom:3px solid var(--teal);border-right:3px solid var(--teal);border-radius:0 0 4px 0"></div>
+        </div>
+      </div>
+      <!-- Placeholder avant activation -->
+      <div id="scan-placeholder" style="text-align:center;padding:24px;color:var(--muted)">
+        <div style="font-size:48px;margin-bottom:12px">📷</div>
+        <div style="font-size:14px">La caméra s'active automatiquement</div>
+      </div>
+    </div>
+
+    <!-- Résultat analyse -->
+    <div id="scan-result" style="display:none;background:rgba(0,200,150,0.06);border:1px solid rgba(0,200,150,0.2);border-radius:12px;padding:14px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:8px">Produit détecté</div>
+      <div id="scan-detected-products"></div>
+    </div>
+
+    <!-- Photo prise -->
+    <div id="scan-photo-preview" style="display:none;margin-bottom:14px">
+      <img id="scan-photo-img" style="width:100%;border-radius:12px;max-height:200px;object-fit:cover">
+      <div style="margin-top:8px;display:flex;gap:8px">
+        <button onclick="revenirScan()" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:9px;font-size:13px;cursor:pointer">↺ Reprendre</button>
+        <button onclick="analyserPhoto()" id="btn-analyser" style="flex:2;background:var(--teal);color:#0A1628;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer">🔍 Analyser la photo</button>
+      </div>
+    </div>
+
+    <!-- Boutons action caméra -->
+    <div id="scan-actions" style="display:flex;gap:8px">
+      <button onclick="prendrePhoto()" id="btn-capture" style="flex:1;background:var(--teal);color:#0A1628;border:none;border-radius:10px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="9"/></svg>
+        Prendre la photo
+      </button>
+      <button onclick="importerPhoto()" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:14px;font-size:13px;cursor:pointer">
+        🖼️ Galerie
+      </button>
+    </div>
+    <input type="file" id="scan-file-input" accept="image/*" style="display:none" onchange="traiterImageFile(this)">
+
+    <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--muted)">
+      Pointez la caméra vers le produit · L'IA identifie le produit automatiquement
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-vente">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -1373,6 +1434,10 @@ function renderCaisse() {
             </div>`).join('') || `<div style="font-size:12px;color:var(--muted);padding:8px 0">Aucune transaction</div>`}
         </div>
         <button class="btn-primary" onclick="openModal('modal-vente')">+ Enregistrer une vente</button>
+        <button onclick="ouvrirScanPhoto()" style="width:100%;margin-top:8px;background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.2);color:var(--teal);border-radius:10px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'DM Sans',sans-serif">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          📷 Scanner un produit
+        </button>
       </div>
     </div>`;
 }
@@ -2932,6 +2997,213 @@ function genInviteKey() {
     key += chars[Math.floor(Math.random() * chars.length)];
   }
   return key;
+}
+
+
+// ═══════════════════════════════════════
+// SCAN PHOTO PRODUIT — IA via Claude API
+// ═══════════════════════════════════════
+let scanStream = null;
+
+async function ouvrirScanPhoto() {
+  openModal('modal-scan');
+  await activerCamera();
+}
+
+async function activerCamera() {
+  try {
+    const placeholder = document.getElementById('scan-placeholder');
+    const video = document.getElementById('scan-video');
+    scanStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    video.srcObject = scanStream;
+    video.style.display = 'block';
+    if (placeholder) placeholder.style.display = 'none';
+  } catch(e) {
+    showToast('Caméra non disponible — utilisez la galerie', 'error');
+  }
+}
+
+function fermerScan() {
+  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+  document.getElementById('scan-video').style.display = 'none';
+  document.getElementById('scan-photo-preview').style.display = 'none';
+  document.getElementById('scan-result').style.display = 'none';
+  document.getElementById('scan-actions').style.display = 'flex';
+  document.getElementById('scan-placeholder').style.display = 'block';
+  closeModal('modal-scan');
+}
+
+function prendrePhoto() {
+  const video = document.getElementById('scan-video');
+  const canvas = document.getElementById('scan-canvas');
+  if (!video.srcObject) { showToast('Activez la caméra d\'abord', 'error'); return; }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+  afficherPhotoCapturee(dataUrl);
+}
+
+function importerPhoto() {
+  document.getElementById('scan-file-input').click();
+}
+
+function traiterImageFile(input) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => afficherPhotoCapturee(e.target.result);
+  reader.readAsDataURL(input.files[0]);
+}
+
+function afficherPhotoCapturee(dataUrl) {
+  document.getElementById('scan-photo-img').src = dataUrl;
+  document.getElementById('scan-photo-preview').style.display = 'block';
+  document.getElementById('scan-actions').style.display = 'none';
+  document.getElementById('scan-result').style.display = 'none';
+  // Stopper la vidéo
+  const video = document.getElementById('scan-video');
+  video.style.display = 'none';
+  document.getElementById('scan-placeholder').style.display = 'none';
+}
+
+function revenirScan() {
+  document.getElementById('scan-photo-preview').style.display = 'none';
+  document.getElementById('scan-result').style.display = 'none';
+  document.getElementById('scan-actions').style.display = 'flex';
+  const video = document.getElementById('scan-video');
+  if (scanStream) { video.style.display = 'block'; }
+  else { document.getElementById('scan-placeholder').style.display = 'block'; activerCamera(); }
+}
+
+async function analyserPhoto() {
+  const img = document.getElementById('scan-photo-img');
+  if (!img.src) return;
+  const btn = document.getElementById('btn-analyser');
+  btn.disabled = true; btn.textContent = '⏳ Analyse en cours…';
+
+  // Convertir en base64 pur
+  const base64 = img.src.split(',')[1];
+  const shopName = DB.get('shopname') || 'boutique';
+  const prodList = produits.map(p => p.nom + ' (' + fmt(p.vente||p.prix_vente||0) + ', stock: ' + p.stock + ')').join(', ');
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 500,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: 'image/jpeg', data: base64 }
+            },
+            {
+              type: 'text',
+              text: 'Tu es l\'assistant de caisse de la boutique "' + shopName + '". Voici les produits disponibles en stock: ' + prodList + '. Analyse cette photo et identifie les produits que tu vois qui correspondent à cette liste. Réponds UNIQUEMENT en JSON valide, sans texte avant ou après, format: {"produits": [{"nom": "nom exact du produit de la liste", "qte": 1, "prix": prix_numerique, "confiance": "haute|moyenne|faible"}], "message": "description courte de ce que tu vois"}'
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+
+    // Parser le JSON
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('Format invalide');
+    const result = JSON.parse(jsonMatch[0]);
+
+    afficherResultatScan(result);
+  } catch(e) {
+    console.error('Scan error:', e);
+    // Fallback : recherche par similarité dans les produits
+    afficherResultatFallback();
+  }
+
+  btn.disabled = false; btn.textContent = '🔍 Analyser la photo';
+}
+
+function afficherResultatScan(result) {
+  const zone = document.getElementById('scan-result');
+  const detected = document.getElementById('scan-detected-products');
+  zone.style.display = 'block';
+
+  if (!result.produits || !result.produits.length) {
+    detected.innerHTML = `
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px">${result.message || 'Aucun produit reconnu'}</div>
+      <div style="font-size:12px;color:var(--warn)">💡 Essayez avec une photo plus nette ou ajoutez le produit manuellement</div>`;
+    return;
+  }
+
+  detected.innerHTML = result.produits.map(p => {
+    const prod = produits.find(x => x.nom.toLowerCase() === p.nom.toLowerCase() ||
+      x.nom.toLowerCase().includes(p.nom.toLowerCase()));
+    if (!prod) return '';
+    const confColor = p.confiance==='haute'?'var(--teal)':p.confiance==='moyenne'?'var(--warn)':'var(--muted)';
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:rgba(255,255,255,0.04);border-radius:10px;margin-bottom:8px;border:1px solid rgba(0,200,150,0.15)">
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600;color:var(--cream)">${prod.nom}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${fmt(prod.vente||prod.prix_vente||0)} · Stock: ${prod.stock}</div>
+          <div style="font-size:10px;color:${confColor};margin-top:3px;font-weight:600">● Confiance ${p.confiance}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="display:flex;align-items:center;gap:4px">
+            <button onclick="scanChangeQte(${prod.id},-1)" style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--cream);font-size:14px;cursor:pointer">−</button>
+            <span id="scan-qte-${prod.id}" style="font-size:14px;font-weight:700;min-width:20px;text-align:center">${p.qte}</span>
+            <button onclick="scanChangeQte(${prod.id},1)" style="width:26px;height:26px;border-radius:50%;background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.2);color:var(--teal);font-size:14px;cursor:pointer">+</button>
+          </div>
+          <button onclick="ajouterDepuisScan(${prod.id})" style="background:var(--teal);color:#0A1628;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer">+ Ajouter</button>
+        </div>
+      </div>`;
+  }).join('') || `<div style="font-size:13px;color:var(--muted)">Aucun produit correspondant trouvé dans votre stock</div>`;
+
+  if (result.message) {
+    detected.innerHTML += `<div style="font-size:11px;color:var(--muted);margin-top:8px;font-style:italic">🤖 ${result.message}</div>`;
+  }
+}
+
+function afficherResultatFallback() {
+  const zone = document.getElementById('scan-result');
+  const detected = document.getElementById('scan-detected-products');
+  zone.style.display = 'block';
+  detected.innerHTML = `
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Impossible d'identifier le produit automatiquement.</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Sélectionnez manuellement :</div>
+    <div style="max-height:200px;overflow-y:auto">
+      ${produits.filter(p=>p.stock>0).map(p=>`
+        <div onclick="ajouterDepuisScan(${p.id})" style="padding:10px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:6px;cursor:pointer;border:1px solid var(--border)">
+          <span style="font-size:13px;font-weight:500">${p.nom}</span>
+          <span style="font-size:12px;color:var(--teal);margin-left:8px">${fmt(p.vente||p.prix_vente||0)}</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+const scanQtes = {};
+function scanChangeQte(id, delta) {
+  if (!scanQtes[id]) scanQtes[id] = 1;
+  scanQtes[id] = Math.max(1, scanQtes[id] + delta);
+  const el = document.getElementById('scan-qte-'+id);
+  if (el) el.textContent = scanQtes[id];
+}
+
+function ajouterDepuisScan(prodId) {
+  const p = produits.find(x => x.id === prodId);
+  if (!p) return;
+  const qte = scanQtes[prodId] || 1;
+  const existing = cart.find(c => c.id === prodId);
+  if (existing) existing.qte += qte;
+  else cart.push({ id: p.id, nom: p.nom, prix: p.vente||p.prix_vente||0, qte, stock: p.stock });
+  fermerScan();
+  renderCart();
+  openModal('modal-vente');
+  showToast(p.nom + ' ajouté au panier ✓', 'success');
 }
 
 async function initApp() {
