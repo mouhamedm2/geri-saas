@@ -2,6 +2,7 @@
   "version": 2,
   "routes": [
     { "src": "/app(.*)", "dest": "/public/app.html" },
+    { "src": "/employe(.*)", "dest": "/public/employe.html" },
     { "src": "/(.*)", "dest": "/public/$1" }
   ],
   "headers": [

@@ -170,3 +170,32 @@ create index if not exists idx_audit_created on audit_logs(created_at desc);
 alter table audit_logs enable row level security;
 create policy "audit_insert_own" on audit_logs for insert with check (true);
 create policy "audit_select_own" on audit_logs for select using (auth.uid() = user_id);
+
+-- ── Clé d'invitation boutique ──
+ALTER TABLE boutiques ADD COLUMN IF NOT EXISTS invite_key text unique;
+
+-- ── Comptes employés (liés à auth.users + boutique) ──
+CREATE TABLE IF NOT EXISTS employe_accounts (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  boutique_id uuid REFERENCES boutiques(id) ON DELETE CASCADE NOT NULL,
+  employe_id uuid REFERENCES employes(id) ON DELETE SET NULL,
+  nom text NOT NULL,
+  role text DEFAULT 'Vendeur',
+  acces text DEFAULT 'ventes',
+  actif boolean DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(user_id, boutique_id)
+);
+
+ALTER TABLE employe_accounts ENABLE ROW LEVEL SECURITY;
+
+-- L'employé voit son propre compte
+CREATE POLICY "emp_account_own" ON employe_accounts
+  FOR ALL USING (auth.uid() = user_id);
+
+-- Le patron voit les comptes de sa boutique
+CREATE POLICY "emp_account_patron" ON employe_accounts
+  FOR SELECT USING (
+    boutique_id IN (SELECT id FROM boutiques WHERE user_id = auth.uid())
+  );

@@ -53,6 +53,7 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
     <div class="auth-tabs">
       <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Se connecter</div>
       <div class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Créer un compte</div>
+      <div class="auth-tab" id="tab-employe" onclick="switchTab('employe')">Employé</div>
     </div>
 
     <div id="error-msg" class="error-msg"></div>
@@ -72,6 +73,34 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
       <div style="text-align:right;margin-top:10px">
         <span onclick="switchTab('forgot')" style="font-size:12px;color:var(--teal);cursor:pointer;text-decoration:underline">Mot de passe oublié ?</span>
       </div>
+    </div>
+
+    <!-- EMPLOYE JOIN FORM -->
+    <div id="form-employe" style="display:none">
+      <div style="background:rgba(0,200,150,0.06);border:1px solid rgba(0,200,150,0.15);border-radius:10px;padding:14px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:4px">👔 Compte Employé</div>
+        <div style="font-size:12px;color:var(--muted)">Créez votre accès avec la clé fournie par votre patron</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Votre nom complet *</label>
+        <input class="form-input" id="emp-signup-nom" placeholder="ex: Aminata Ndiaye">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input class="form-input" id="emp-signup-email" type="email" placeholder="vous@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe *</label>
+        <input class="form-input" id="emp-signup-pwd" type="password" placeholder="Minimum 8 caractères">
+      </div>
+      <div class="form-group">
+        <label class="form-label">🔑 Clé d'invitation *</label>
+        <input class="form-input" id="emp-invite-key" placeholder="XXXX-XXXX"
+          style="font-family:monospace;font-size:18px;letter-spacing:3px;text-transform:uppercase"
+          oninput="this.value=this.value.toUpperCase()">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Demandez cette clé à votre employeur</div>
+      </div>
+      <button class="btn-submit" id="btn-emp-signup" onclick="doEmployeSignup()">Rejoindre la boutique →</button>
     </div>
 
     <!-- FORGOT PASSWORD FORM -->
@@ -217,13 +246,76 @@ if (plan) {
 if (isDemo) demoMode();
 
 function switchTab(tab) {
-  ['login','signup','forgot','reset'].forEach(t => {
+  ['login','signup','forgot','reset','employe'].forEach(t => {
     const f = document.getElementById('form-'+t);
     if (f) f.style.display = tab === t ? '' : 'none';
   });
   document.getElementById('tab-login').className = 'auth-tab' + (tab === 'login' ? ' active' : '');
   document.getElementById('tab-signup').className = 'auth-tab' + (tab === 'signup' ? ' active' : '');
+  const te = document.getElementById('tab-employe');
+  if (te) te.className = 'auth-tab' + (tab === 'employe' ? ' active' : '');
   hideMessages();
+}
+
+async function doEmployeSignup() {
+  const nom = document.getElementById('emp-signup-nom').value.trim();
+  const email = document.getElementById('emp-signup-email').value.trim();
+  const pwd = document.getElementById('emp-signup-pwd').value;
+  const key = document.getElementById('emp-invite-key').value.trim().toUpperCase();
+
+  if (!nom) { showError('Votre nom est obligatoire'); return; }
+  if (!email) { showError('Email requis'); return; }
+  if (pwd.length < 8) { showError('Mot de passe minimum 8 caractères'); return; }
+  if (!key || key.length < 8) { showError('Clé d\'invitation invalide'); return; }
+
+  const btn = document.getElementById('btn-emp-signup');
+  btn.disabled = true; btn.textContent = 'Vérification…';
+
+  // Vérifier la clé dans Supabase
+  const { data: boutique, error: bErr } = await sb
+    .from('boutiques')
+    .select('id, nom, user_id')
+    .eq('invite_key', key)
+    .single();
+
+  if (bErr || !boutique) {
+    btn.disabled = false; btn.textContent = 'Rejoindre la boutique →';
+    showError('Clé d\'invitation invalide ou expirée');
+    return;
+  }
+
+  btn.textContent = 'Création du compte…';
+
+  // Créer le compte Supabase Auth
+  const { data, error } = await sb.auth.signUp({
+    email, password: pwd,
+    options: { data: { nom, role: 'employe', boutique_id: boutique.id, boutique_nom: boutique.nom } }
+  });
+
+  if (error) {
+    btn.disabled = false; btn.textContent = 'Rejoindre la boutique →';
+    showError(error.message); return;
+  }
+
+  // Créer le compte employé dans employe_accounts
+  if (data.user) {
+    await sb.from('employe_accounts').insert({
+      user_id: data.user.id,
+      boutique_id: boutique.id,
+      nom,
+      role: 'Vendeur',
+      acces: 'ventes'
+    });
+
+    sessionStorage.setItem('geri_user_id', data.user.id);
+    sessionStorage.setItem('geri_role', 'employe');
+    sessionStorage.setItem('geri_boutique_id', boutique.id);
+    sessionStorage.setItem('geri_boutique_nom', boutique.nom);
+  }
+
+  btn.disabled = false; btn.textContent = 'Rejoindre la boutique →';
+  showSuccess('Compte créé ! Vérifiez votre email puis connectez-vous.');
+  switchTab('login');
 }
 
 async function doForgot() {
@@ -281,7 +373,15 @@ async function doLogin() {
   } catch(e) {}
   sessionStorage.setItem('geri_user_id', data.user.id);
   sessionStorage.setItem('geri_email', data.user.email);
-  window.location.href = 'app.html';
+  // Vérifier si c'est un employé
+  const { data: empAccount } = await sb.from('employe_accounts').select('*').eq('user_id', data.user.id).single();
+  if (empAccount) {
+    sessionStorage.setItem('geri_role', 'employe');
+    sessionStorage.setItem('geri_boutique_id', empAccount.boutique_id);
+    window.location.href = 'employe.html';
+  } else {
+    window.location.href = 'app.html';
+  }
 }
 
 async function doSignup() {
@@ -358,9 +458,12 @@ async function doReset() {
 }
 
 async function checkSession() {
+  // Pre-select employe tab if URL param
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('role') === 'employe') switchTab('employe');
+
   // Detect password reset flow from Supabase magic link
   const hash = window.location.hash;
-  const params = new URLSearchParams(window.location.search);
 
   // Valider que le hash vient bien de Supabase (contient access_token)
   const isValidRecovery = (hash.includes('type=recovery') && hash.includes('access_token='))
