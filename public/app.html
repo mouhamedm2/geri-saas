@@ -2738,15 +2738,7 @@ async function regenererCle() {
   showToast('Nouvelle clé générée ✓', 'success');
 }
 
-function genInviteKey() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let key = '';
-  for (let i = 0; i < 8; i++) {
-    if (i === 4) key += '-';
-    key += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return key;
-}
+// genInviteKey définie plus haut
 
 function copierCle(key) {
   navigator.clipboard.writeText(key).then(() => showToast('Clé copiée !', 'success'));
@@ -2932,6 +2924,16 @@ function searchGlobal(q) {
     : '<div style="padding:12px;font-size:13px;color:var(--muted);text-align:center">Aucun résultat pour "'+q+'"</div>';
 }
 
+function genInviteKey() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let key = '';
+  for (let i = 0; i < 8; i++) {
+    if (i === 4) key += '-';
+    key += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return key;
+}
+
 async function initApp() {
   if (isDemo) {
     // Mode démo : données localStorage seulement
@@ -2958,11 +2960,14 @@ async function initApp() {
       if (boutiques.ville) DB.set('shopville', boutiques.ville);
       // Clé d'invitation : générer si absente
       if (boutiques.invite_key) {
+        // Clé déjà en base → utiliser celle-là
         DB.set('invite_key', boutiques.invite_key);
-      } else if (!DB.get('invite_key')) {
-        const newKey = genInviteKey ? genInviteKey() : Math.random().toString(36).slice(2,10).toUpperCase();
+      } else {
+        // Générer et sauvegarder une nouvelle clé
+        const newKey = genInviteKey();
         DB.set('invite_key', newKey);
-        if (_supabase) await _supabase.from('boutiques').update({ invite_key: newKey }).eq('id', boutiqueId);
+        await _supabase.from('boutiques').update({ invite_key: newKey }).eq('id', boutiqueId);
+        console.log('Clé invitation générée:', newKey);
       }
       document.getElementById('shop-name-disp').textContent = boutiques.nom;
       document.getElementById('shop-avatar').textContent = boutiques.nom.charAt(0).toUpperCase();
