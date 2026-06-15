@@ -1278,19 +1278,65 @@ function renderSkeleton() {
 // DASHBOARD ANALYTICS AVANCÉ
 // ═══════════════════════════════════════
 
+function getCAparMois(nbMois) {
+  const index = {};
+  ventes.forEach(v => {
+    const m = (v.date||'').slice(0,7); // YYYY-MM
+    if (!index[m]) index[m] = { ca: 0, nb: 0 };
+    index[m].ca += v.total;
+    index[m].nb += 1;
+  });
+  const result = [];
+  for (let i = nbMois-1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(1);
+    d.setMonth(d.getMonth() - i);
+    const key = d.toISOString().slice(0,7);
+    const label = d.toLocaleDateString('fr-SN', {month:'short'});
+    result.push({ date: key, ca: index[key]?.ca||0, nb: index[key]?.nb||0, label });
+  }
+  return result;
+}
+
 function getCAperiode(days) {
-  // Construire un index date → ventes pour éviter O(n²)
   const index = {};
   ventes.forEach(v => {
     if (!index[v.date]) index[v.date] = { ca: 0, nb: 0 };
     index[v.date].ca += v.total;
     index[v.date].nb += 1;
   });
+
+  // 90 jours → grouper par mois (3 barres)
+  if (days >= 90) {
+    const mois = [];
+    for (let m = 2; m >= 0; m--) {
+      const d = new Date();
+      d.setDate(1);
+      d.setMonth(d.getMonth() - m);
+      const label = d.toLocaleDateString('fr-SN', { month: 'short' });
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const prefix = year + '-' + month;
+      const ca = Object.entries(index)
+        .filter(([ds]) => ds.startsWith(prefix))
+        .reduce((s, [, v]) => s + v.ca, 0);
+      const nb = Object.entries(index)
+        .filter(([ds]) => ds.startsWith(prefix))
+        .reduce((s, [, v]) => s + v.nb, 0);
+      mois.push({ date: prefix, ca, nb, label });
+    }
+    return mois;
+  }
+
+  // 7 ou 30 jours → jour par jour
   const result = [];
   for (let i = days-1; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate()-i);
     const ds = d.toISOString().split('T')[0];
-    result.push({ date: ds, ca: index[ds]?.ca || 0, nb: index[ds]?.nb || 0 });
+    const label = days <= 7
+      ? d.toLocaleDateString('fr-SN', { weekday: 'short' }).slice(0,2)
+      : d.toLocaleDateString('fr-SN', { day: 'numeric', month: 'short' }).replace(' ', '\u00a0');
+    result.push({ date: ds, ca: index[ds]?.ca || 0, nb: index[ds]?.nb || 0, label });
   }
   return result;
 }
@@ -1436,9 +1482,11 @@ function renderDashboard() {
   const dettesTotal = dettes.filter(d => !d.payee).reduce((s,d) => s+d.montant, 0);
 
   // Analytics
-  const periode = getCAperiode(dashPeriod);
+  const periode = dashPeriod === 90 ? getCAparMois(3) : getCAperiode(dashPeriod);
   const caTotal = periode.reduce((s,d)=>s+d.ca, 0);
-  const caPrecedent = getCAperiode(dashPeriod*2).slice(0, dashPeriod).reduce((s,d)=>s+d.ca, 0);
+  const caPrecedent = dashPeriod === 90
+    ? getCAparMois(6).slice(0,3).reduce((s,d)=>s+d.ca,0)
+    : getCAperiode(dashPeriod*2).slice(0, dashPeriod).reduce((s,d)=>s+d.ca, 0);
   const tendance = caPrecedent > 0 ? Math.round((caTotal - caPrecedent) / caPrecedent * 100) : 0;
   const topProduits = getTopProduits(5);
   const modes = getModesPaiement();
@@ -1446,7 +1494,7 @@ function renderDashboard() {
   const panierMoyen = nbVentesPeriode > 0 ? Math.round(caTotal / nbVentesPeriode) : 0;
 
   // Labels période
-  const periodLabel = dashPeriod === 7 ? '7 jours' : dashPeriod === 30 ? '30 jours' : '90 jours';
+  const periodLabel = dashPeriod === 7 ? '7 jours' : dashPeriod === 30 ? '30 jours' : '3 mois';
 
   return `
     ${(stockBas.length||rupture.length) ? `
@@ -1484,7 +1532,7 @@ function renderDashboard() {
     <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Analytique</div>
       <div style="display:flex;gap:4px">
-        ${[7,30,90].map(d=>`<button onclick="changerPeriodeDash(${d})" style="background:${dashPeriod===d?'var(--teal)':'rgba(255,255,255,0.05)'};color:${dashPeriod===d?'#0A1628':'var(--muted)'};border:1px solid ${dashPeriod===d?'var(--teal)':'var(--border)'};border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">${d}j</button>`).join('')}
+        ${[[7,'7j'],[30,'30j'],[90,'3M']].map(([d,l])=>`<button onclick="changerPeriodeDash(${d})" style="background:${dashPeriod===d?'var(--teal)':'rgba(255,255,255,0.05)'};color:${dashPeriod===d?'#0A1628':'var(--muted)'};border:1px solid ${dashPeriod===d?'var(--teal)':'var(--border)'};border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">${l}</button>`).join('')}
       </div>
     </div>
 
@@ -1518,22 +1566,14 @@ function renderDashboard() {
       </div>
       ${periode.every(d=>d.ca===0)
         ? '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Aucune vente sur la période</div>'
-        : svgLineChart(periode.map(d=>({
-            ...d,
-            label: new Date(d.date).toLocaleDateString('fr-SN',{day:'numeric',month:'short'}).replace(' ','\u00a0')
-          })), 'ca', 'label')}
+        : svgLineChart(periode, 'ca', 'label')}
     </div>
 
     <!-- GRAPHIQUE BARRES JOURNALIER -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px">
-      <div style="font-size:13px;font-weight:600;color:var(--cream);margin-bottom:4px">Ventes par jour</div>
+      <div style="font-size:13px;font-weight:600;color:var(--cream);margin-bottom:4px">${dashPeriod===90?'CA par mois':'Ventes par jour'}</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:14px">${periodLabel}</div>
-      ${svgBarChart(
-        periode.map(d=>({
-          ...d,
-          label: new Date(d.date).toLocaleDateString('fr-SN',{weekday:'short'}).slice(0,2)
-        })), 'ca', 'label', {h:80, accent:true}
-      )}
+      ${svgBarChart(periode, 'ca', 'label', {h:80, accent:true})}
     </div>
 
     <!-- TOP PRODUITS + MODES PAIEMENT -->
@@ -1613,6 +1653,7 @@ function renderDashboard() {
 function changerPeriodeDash(d) {
   dashPeriod = d;
   invalidateDashCache();
+  _topCacheLen = -1;
   render();
   // Scroll vers analytics
   setTimeout(() => {
