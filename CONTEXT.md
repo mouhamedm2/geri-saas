@@ -195,7 +195,7 @@ npm run dev   # Lance sur http://localhost:3000
 
 ## 11. Accès GitHub pour les IAs — comment travailler à distance
 
-### Si tu es une IA qui lit ce fichier
+### Note à l'assistant qui prend en charge ce projet
 
 Tu peux modifier le code et pusher directement sur GitHub sans que le propriétaire installe quoi que ce soit.
 
