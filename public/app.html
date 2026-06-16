@@ -3358,11 +3358,10 @@ function changerMotDePasse() {
 }
 
 function ouvrirSupport() {
-  const msg = encodeURIComponent('Bonjour, j\'ai besoin d\'aide avec Géri.
-
-Boutique : '+DB.get('shopname')+'
-Email : '+sessionStorage.getItem('geri_email'));
-  window.open('https://wa.me/221771332599?text='+msg, '_blank');
+  const boutique = DB.get('shopname') || '';
+  const email = sessionStorage.getItem('geri_email') || '';
+  const msg = encodeURIComponent('Bonjour, j' + String.fromCharCode(39) + 'ai besoin d' + String.fromCharCode(39) + 'aide avec Geri.' + '\n\nBoutique: ' + boutique + '\nEmail: ' + email);
+  window.open('https://wa.me/221771332599?text=' + msg, '_blank');
 }
 
 function seDeconnecter() {
