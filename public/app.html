@@ -540,24 +540,37 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 <div class="modal-overlay" id="modal-dette">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Ajouter une dette client</div>
+    <div class="modal-title" id="modal-dette-title">Nouvelle dette client</div>
     <div class="form-group">
       <label class="form-label">Nom du client *</label>
       <input class="form-input" id="d-client" placeholder="ex: Moussa Diallo">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Téléphone (pour relance WhatsApp)</label>
+      <input class="form-input" id="d-tel" placeholder="77 XXX XX XX" type="tel">
     </div>
     <div class="form-group">
       <label class="form-label">Montant dû (FCFA) *</label>
       <input class="form-input" id="d-montant" type="number" placeholder="0">
     </div>
     <div class="form-group">
-      <label class="form-label">Description</label>
+      <label class="form-label">Description / Motif</label>
       <input class="form-input" id="d-desc" placeholder="ex: Tissu Wax 6m + transport">
     </div>
     <div class="form-group">
       <label class="form-label">Date de remboursement prévue</label>
       <input class="form-input" id="d-date" type="date">
     </div>
-    <button class="btn-primary" onclick="ajouterDette()">Enregistrer la dette</button>
+    <div class="form-group">
+      <label class="form-label">Priorité</label>
+      <select class="form-input" id="d-priorite" style="background:rgba(255,255,255,0.05)">
+        <option value="normale">🟡 Normale</option>
+        <option value="haute">🔴 Haute — relancer rapidement</option>
+        <option value="basse">🟢 Basse — pas urgente</option>
+      </select>
+    </div>
+    <input type="hidden" id="d-edit-id" value="">
+    <button class="btn-primary" onclick="sauvegarderDette()">Enregistrer</button>
     <button class="btn-ghost" onclick="closeModal('modal-dette')">Annuler</button>
   </div>
 </div>
@@ -2095,32 +2108,99 @@ function viderDonnees() {
 // ═══════════════════════════════════════
 function renderDettes() {
   const actives = dettes.filter(d=>!d.payee);
-  const total = actives.reduce((s,d)=>s+d.montant,0);
-  return `
-    <div style="display:flex;gap:12px;margin-bottom:16px">
-      <div class="stat-card" style="flex:1"><div class="stat-label">Total dû</div><div class="stat-val" style="color:var(--warn)">${fmt(total)}</div><div class="stat-sub">${actives.length} client${actives.length!==1?'s':''}</div></div>
-      <div class="stat-card" style="flex:1"><div class="stat-label">Récupéré</div><div class="stat-val" style="color:var(--teal)">${fmt(dettes.filter(d=>d.payee).reduce((s,d)=>s+d.montant,0))}</div><div class="stat-sub">${dettes.filter(d=>d.payee).length} remboursé${dettes.filter(d=>d.payee).length!==1?'s':''}</div></div>
-    </div>
-    <div class="section-hd"><div class="section-title">Dettes actives</div></div>
-    <div class="table-wrap">
-      ${actives.length ? actives.map(d=>`
-        <div class="table-row" style="grid-template-columns:1fr auto auto">
-          <div><div class="prod-name">${d.client}</div><div class="prod-cat">${d.desc||'—'} · ${d.date?'Dû le '+formatDate(d.dateRemb):'Pas de date'}</div></div>
-          <div style="font-size:14px;font-weight:600;color:var(--warn);margin-right:12px">${fmt(d.montant)}</div>
-          <button onclick="marquerPayee(${d.id})" style="background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;white-space:nowrap">Remboursé ✓</button>
-        </div>`).join('')
-      :`<div class="empty" style="padding:40px 20px"><p>Aucune dette active<br>Bonne nouvelle !</p></div>`}
-    </div>
-    ${dettes.filter(d=>d.payee).length?`
-    <div class="section-hd" style="margin-top:16px"><div class="section-title">Remboursées</div></div>
-    <div class="table-wrap">
-      ${dettes.filter(d=>d.payee).map(d=>`
-        <div class="table-row" style="grid-template-columns:1fr auto">
-          <div><div class="prod-name" style="color:var(--muted);text-decoration:line-through">${d.client}</div><div class="prod-cat">${d.desc||'—'}</div></div>
-          <div style="font-size:13px;color:var(--muted)">${fmt(d.montant)}</div>
-        </div>`).join('')}
-    </div>`:''}`;
+  const payees  = dettes.filter(d=>d.payee);
+  const total   = actives.reduce((s,d)=>s+d.montant,0);
+  const totalR  = payees.reduce((s,d)=>s+d.montant,0);
+  const now     = new Date();
+
+  const enRetard = actives.filter(d=>d.dateRemb && new Date(d.dateRemb)<now);
+  const urgentes = actives.filter(d=>d.priorite==='haute' && !enRetard.includes(d));
+  const normales = actives.filter(d=>!enRetard.includes(d) && !urgentes.includes(d));
+
+  function detteCard(d) {
+    const retard = d.dateRemb && new Date(d.dateRemb)<now;
+    const jr = d.dateRemb ? Math.ceil((new Date(d.dateRemb)-now)/(1000*60*60*24)) : null;
+    const borderC = retard ? 'rgba(255,90,90,0.3)' : d.priorite==='haute' ? 'rgba(255,90,90,0.2)' : 'var(--border)';
+    return '<div style="background:var(--card);border:1px solid '+borderC+';border-radius:12px;padding:14px;margin-bottom:10px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">'
+        +'<div style="flex:1">'
+          +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+            +'<div style="font-size:15px;font-weight:700;color:var(--cream)">'+d.client+'</div>'
+            +(retard ? '<span style="background:rgba(255,90,90,0.12);color:var(--danger);font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px">EN RETARD</span>' : '')
+            +(d.priorite==='haute' ? '<span style="background:rgba(255,90,90,0.08);color:var(--danger);font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px">URGENT</span>' : '')
+          +'</div>'
+          +(d.desc ? '<div style="font-size:12px;color:var(--muted)">'+d.desc+'</div>' : '')
+          +(d.tel  ? '<div style="font-size:11px;color:var(--muted);margin-top:2px">📱 '+d.tel+'</div>' : '')
+        +'</div>'
+        +'<div style="text-align:right;flex-shrink:0">'
+          +'<div style="font-family:\'Syne\',sans-serif;font-size:18px;font-weight:800;color:var(--warn)">'+fmt(d.montant)+'</div>'
+          +(d.dateRemb ? '<div style="font-size:10px;margin-top:2px;color:'+(retard?'var(--danger)':jr<=3?'var(--warn)':'var(--muted)')+'">'+( retard ? 'Retard: '+Math.abs(jr)+'j' : 'Dans '+jr+'j')+'</div>' : '')
+        +'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+        +'<button onclick="relancerWA('+d.id+')" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer">💬 Relancer</button>'
+        +'<button onclick="marquerPayee('+d.id+')" style="flex:1;background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.2);color:var(--teal);border-radius:8px;padding:8px 10px;font-size:12px;font-weight:600;cursor:pointer">✓ Remboursé</button>'
+        +'<button onclick="ouvrirEditDette('+d.id+')" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 10px;font-size:12px;cursor:pointer">✎</button>'
+        +'<button onclick="supprimerDette('+d.id+')" style="background:rgba(255,90,90,0.06);border:1px solid rgba(255,90,90,0.15);color:var(--danger);border-radius:8px;padding:8px 10px;font-size:12px;cursor:pointer">✕</button>'
+      +'</div>'
+    +'</div>';
+  }
+
+  let html = '';
+
+  // KPIs
+  html += '<div class="stat-grid" style="margin-bottom:14px">'
+    +'<div class="stat-card" style="border-color:rgba(255,169,64,0.2)"><div class="stat-label">Total impayé</div><div class="stat-val" style="color:var(--warn)">'+fmtShort(total)+'</div><div class="stat-sub">'+actives.length+' client'+(actives.length!==1?'s':'')+'</div></div>'
+    +'<div class="stat-card" style="border-color:rgba(255,90,90,0.2)"><div class="stat-label">En retard</div><div class="stat-val" style="color:var(--danger)">'+enRetard.length+'</div><div class="stat-sub">'+(enRetard.length ? fmt(enRetard.reduce((s,d)=>s+d.montant,0)) : 'Aucun')+'</div></div>'
+    +'<div class="stat-card" style="border-color:rgba(0,200,150,0.15)"><div class="stat-label">Récupéré</div><div class="stat-val" style="color:var(--teal)">'+fmtShort(totalR)+'</div><div class="stat-sub">'+payees.length+' remboursé'+(payees.length!==1?'s':'')+'</div></div>'
+    +'<div class="stat-card"><div class="stat-label">Taux récup.</div><div class="stat-val">'+(total+totalR>0?Math.round(totalR/(total+totalR)*100):0)+'%</div><div class="stat-sub">Sur total crédit</div></div>'
+    +'</div>';
+
+  // Relance groupée
+  if (actives.length >= 2) {
+    html += '<button onclick="relancerTous()" style="width:100%;background:linear-gradient(90deg,#25D366,#1db954);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:14px;font-family:\'DM Sans\',sans-serif">💬 Relancer tous les clients ('+actives.length+')</button>';
+  }
+
+  // En retard
+  if (enRetard.length) {
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="width:3px;height:16px;background:var(--danger);border-radius:2px"></div><div style="font-size:13px;font-weight:700;color:var(--danger)">En retard ('+enRetard.length+')</div></div>';
+    html += enRetard.map(d=>detteCard(d)).join('');
+  }
+
+  // Urgentes
+  if (urgentes.length) {
+    html += '<div style="display:flex;align-items:center;gap:8px;margin:12px 0 10px"><div style="width:3px;height:16px;background:var(--warn);border-radius:2px"></div><div style="font-size:13px;font-weight:700;color:var(--warn)">Urgentes ('+urgentes.length+')</div></div>';
+    html += urgentes.map(d=>detteCard(d)).join('');
+  }
+
+  // Normales
+  if (normales.length) {
+    html += '<div style="display:flex;align-items:center;gap:8px;margin:'+(enRetard.length||urgentes.length?'12px':'0')+' 0 10px"><div style="width:3px;height:16px;background:var(--muted);border-radius:2px"></div><div style="font-size:13px;font-weight:700;color:var(--muted)">Actives ('+normales.length+')</div></div>';
+    html += normales.map(d=>detteCard(d)).join('');
+  }
+
+  if (!actives.length) {
+    html += '<div class="empty" style="padding:40px 20px"><p style="font-size:32px;margin-bottom:8px">🎉</p><p>Aucune dette active !<br><span style="color:var(--teal)">Excellente nouvelle.</span></p></div>';
+  }
+
+  // Historique
+  if (payees.length) {
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-top:20px;margin-bottom:10px"><div style="width:3px;height:16px;background:var(--teal);border-radius:2px"></div><div style="font-size:13px;font-weight:700;color:var(--teal)">Remboursées ('+payees.length+')</div></div>';
+    html += '<div class="table-wrap">';
+    html += payees.slice().reverse().slice(0,10).map(d=>
+      '<div class="table-row" style="grid-template-columns:1fr auto auto">'
+      +'<div><div class="prod-name" style="color:var(--muted);text-decoration:line-through">'+d.client+'</div>'
+      +'<div class="prod-cat">'+(d.desc||'—')+(d.payeeDate?' · Remboursé le '+formatDate(d.payeeDate):'')+'</div></div>'
+      +'<div style="font-size:13px;color:var(--muted);margin-right:8px">'+fmt(d.montant)+'</div>'
+      +'<button onclick="supprimerDette('+d.id+')" style="background:transparent;border:none;color:rgba(255,90,90,0.4);font-size:14px;cursor:pointer;padding:4px">✕</button>'
+      +'</div>'
+    ).join('');
+    html += '</div>';
+  }
+
+  return html;
 }
+
 
 // ═══════════════════════════════════════
 // VENTE FLOW
@@ -2645,7 +2725,7 @@ _${shopName} · via Géri_`;
 function partagerSMS() {
   const txt = texteFacture(currentFactureId);
   const f = factures.find(f => f.id === currentFactureId);
-  const tel = f && f.tel ? f.tel.replace(/\D/g,'') : '';
+  const tel = f && f.tel ? f.tel.replace(/[^0-9]/g,'') : '';
   window.location.href = `sms:${tel}?body=${encodeURIComponent(txt)}`;
   toast('Ouverture SMS…');
 }
