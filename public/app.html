@@ -662,43 +662,73 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
 <div class="modal-overlay" id="modal-facture">
   <div class="modal" style="max-height:95vh">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-facture-title">Nouvelle facture</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="modal-title" id="modal-facture-title" style="margin:0">Nouvelle facture</div>
+      <span id="fac-num-badge" style="font-size:12px;font-weight:700;color:var(--teal);background:rgba(0,200,150,0.1);padding:3px 10px;border-radius:20px"></span>
+    </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Client *</label>
-        <input class="form-input" id="fac-client" placeholder="Nom du client">
-      </div>
+    <!-- Client avec autocomplete -->
+    <div class="form-group" style="position:relative">
+      <label class="form-label">Client *</label>
+      <input class="form-input" id="fac-client" placeholder="Nom du client"
+        oninput="autoCompleteClient(this.value)" autocomplete="off">
+      <div id="fac-client-suggestions" style="position:absolute;top:100%;left:0;right:0;background:#1C2E4A;border:1px solid var(--border);border-radius:0 0 10px 10px;z-index:50;display:none;max-height:150px;overflow-y:auto"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="form-group">
         <label class="form-label">Téléphone</label>
-        <input class="form-input" id="fac-tel" placeholder="+221 7X XXX XX XX">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">N° Facture</label>
-        <input class="form-input" id="fac-num" placeholder="FAC-001">
+        <input class="form-input" id="fac-tel" placeholder="7X XXX XX XX" type="tel">
       </div>
       <div class="form-group">
         <label class="form-label">Date</label>
         <input class="form-input" id="fac-date" type="date">
       </div>
     </div>
+
     <div class="form-group">
-      <label class="form-label">Note / description</label>
-      <input class="form-input" id="fac-note" placeholder="ex: Livraison tissu wax commande #42">
+      <label class="form-label">Note / objet</label>
+      <input class="form-input" id="fac-note" placeholder="ex: Commande tissu wax">
     </div>
 
-    <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Articles</div>
+    <!-- Articles -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em">Articles</div>
+      <button onclick="ajouterDepuisCatalogue()" style="background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.2);color:var(--teal);padding:5px 12px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">📦 Depuis le catalogue</button>
+    </div>
     <div id="fac-lignes"></div>
-    <button onclick="ajouterLigneFac()" style="display:flex;align-items:center;gap:6px;background:var(--card);border:1px dashed var(--border2);color:var(--teal);padding:9px 14px;border-radius:var(--r2);font-size:13px;cursor:pointer;width:100%;margin-bottom:14px;font-family:'DM Sans',sans-serif;">
+    <button onclick="ajouterLigneFac()" style="display:flex;align-items:center;gap:6px;background:var(--card);border:1px dashed rgba(255,255,255,0.1);color:var(--teal);padding:9px 14px;border-radius:10px;font-size:13px;cursor:pointer;width:100%;margin-bottom:12px;font-family:'DM Sans',sans-serif;">
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-      Ajouter un article
+      Ajouter un article libre
     </button>
 
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--border2);margin-bottom:14px">
-      <div style="font-size:14px;color:var(--muted)">Total</div>
-      <div id="fac-total-preview" style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--teal)">0 FCFA</div>
+    <!-- Remise + TVA -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div class="form-group" style="margin:0">
+        <label class="form-label">Remise (%)</label>
+        <input class="form-input" id="fac-remise" type="number" min="0" max="100" placeholder="0" oninput="updateFacTotal()">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label">TVA (%)</label>
+        <input class="form-input" id="fac-tva" type="number" min="0" max="30" placeholder="0" oninput="updateFacTotal()">
+      </div>
+    </div>
+
+    <!-- Total -->
+    <div style="background:rgba(0,200,150,0.06);border:1px solid rgba(0,200,150,0.15);border-radius:12px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px">
+        <span>Sous-total</span><span id="fac-subtotal">0 FCFA</span>
+      </div>
+      <div id="fac-remise-line" style="display:none;justify-content:space-between;font-size:12px;color:var(--warn);margin-bottom:4px">
+        <span>Remise</span><span id="fac-remise-amount"></span>
+      </div>
+      <div id="fac-tva-line" style="display:none;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px">
+        <span>TVA</span><span id="fac-tva-amount"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(0,200,150,0.15);padding-top:10px;margin-top:6px">
+        <span style="font-size:13px;font-weight:700;color:var(--cream)">Total TTC</span>
+        <span id="fac-total-preview" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--teal)">0 FCFA</span>
+      </div>
     </div>
 
     <button class="btn-primary" onclick="sauvegarderFacture()">Créer la facture</button>
@@ -2435,11 +2465,17 @@ function genNumFacture() {
 function ouvrirNouvelleFacture() {
   currentFactureId = null;
   facLignes = [{ desc: '', qte: 1, prix: 0 }];
-  document.getElementById('fac-num').value = genNumFacture();
+  const num = genNumFacture();
+  const badge = document.getElementById('fac-num-badge');
+  if (badge) badge.textContent = num;
   document.getElementById('fac-date').value = today();
   document.getElementById('fac-client').value = '';
   document.getElementById('fac-tel').value = '';
   document.getElementById('fac-note').value = '';
+  const remise = document.getElementById('fac-remise');
+  const tva = document.getElementById('fac-tva');
+  if (remise) remise.value = '';
+  if (tva) tva.value = '';
   document.getElementById('modal-facture-title').textContent = 'Nouvelle facture';
   renderLignesFac();
   openModal('modal-facture');
@@ -2476,9 +2512,7 @@ function updateLigneFac(i, key, val) {
 }
 
 function majTotalFac() {
-  const total = facLignes.reduce((s, l) => s + (l.prix * l.qte), 0);
-  const el = document.getElementById('fac-total-preview');
-  if (el) el.textContent = fmt(total);
+  updateFacTotal();
 }
 
 function sauvegarderFacture() {
@@ -2486,15 +2520,25 @@ function sauvegarderFacture() {
   if (!client) { toast('Nom du client obligatoire'); return; }
   const lignesValides = facLignes.filter(l => l.desc.trim());
   if (!lignesValides.length) { toast('Ajoutez au moins un article'); return; }
-  const total = lignesValides.reduce((s, l) => s + l.prix * l.qte, 0);
+  const subtotal = lignesValides.reduce((s, l) => s + l.prix * l.qte, 0);
+  const remisePct = parseFloat(document.getElementById('fac-remise')?.value || 0);
+  const tvaPct = parseFloat(document.getElementById('fac-tva')?.value || 0);
+  const remiseAmt = Math.round(subtotal * remisePct / 100);
+  const tvaAmt = Math.round((subtotal - remiseAmt) * tvaPct / 100);
+  const total = Math.round(subtotal - remiseAmt + tvaAmt);
   const fac = {
     id: currentFactureId || Date.now(),
-    num: document.getElementById('fac-num').value.trim() || genNumFacture(),
+    num: genNumFacture(),
     client,
     tel: document.getElementById('fac-tel').value.trim(),
     note: document.getElementById('fac-note').value.trim(),
     date: document.getElementById('fac-date').value || today(),
     lignes: lignesValides,
+    subtotal,
+    remise: remisePct,
+    remiseAmt,
+    tva: tvaPct,
+    tvaAmt,
     total,
     statut: 'brouillon',
     createdAt: today(),
@@ -2842,33 +2886,99 @@ function supprimerFacture(id) {
   save(); toast('Facture supprimée'); render();
 }
 
+let facFiltreStatut = 'tous';
+let facSearch = '';
+
 function renderFactures() {
   const total = factures.reduce((s,f) => s+f.total, 0);
   const payees = factures.filter(f => f.statut === 'payée');
+  const enAttente = factures.filter(f => f.statut !== 'payée');
+  const montantEnAttente = enAttente.reduce((s,f)=>s+f.total,0);
+
+  const filtered = factures.filter(f => {
+    const matchStatut = facFiltreStatut === 'tous' || f.statut === facFiltreStatut;
+    const matchSearch = !facSearch || f.client.toLowerCase().includes(facSearch) || f.num.toLowerCase().includes(facSearch);
+    return matchStatut && matchSearch;
+  }).reverse();
+
   return `
-    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-      <div class="stat-card" style="flex:1;min-width:120px"><div class="stat-label">Total facturé</div><div class="stat-val">${fmtShort(total)}</div><div class="stat-sub">${factures.length} facture${factures.length!==1?'s':''}</div></div>
-      <div class="stat-card" style="flex:1;min-width:120px"><div class="stat-label">Payées</div><div class="stat-val" style="color:var(--teal)">${fmtShort(payees.reduce((s,f)=>s+f.total,0))}</div><div class="stat-sub">${payees.length} réglée${payees.length!==1?'s':''}</div></div>
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+      <div class="stat-card" onclick="setFacFiltre('tous')" style="cursor:pointer;${facFiltreStatut==='tous'?'border-color:var(--teal)':''}">
+        <div class="stat-label">Total</div>
+        <div class="stat-val" style="font-size:18px">${fmtShort(total)}</div>
+        <div class="stat-sub">${factures.length} factures</div>
+      </div>
+      <div class="stat-card" onclick="setFacFiltre('payée')" style="cursor:pointer;${facFiltreStatut==='payée'?'border-color:var(--teal)':''}">
+        <div class="stat-label">Payées</div>
+        <div class="stat-val" style="font-size:18px;color:var(--teal)">${fmtShort(payees.reduce((s,f)=>s+f.total,0))}</div>
+        <div class="stat-sub">${payees.length} réglées</div>
+      </div>
+      <div class="stat-card" onclick="setFacFiltre('brouillon')" style="cursor:pointer;${facFiltreStatut==='brouillon'||facFiltreStatut==='envoyée'?'border-color:var(--warn)':''}">
+        <div class="stat-label">En attente</div>
+        <div class="stat-val" style="font-size:18px;color:var(--warn)">${fmtShort(montantEnAttente)}</div>
+        <div class="stat-sub">${enAttente.length} à encaisser</div>
+      </div>
     </div>
+
+    <!-- Recherche + filtres -->
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input oninput="facSearch=this.value.toLowerCase();render()" placeholder="Rechercher client, numéro…"
+        style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:9px;padding:9px 13px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+      <select onchange="setFacFiltre(this.value)" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:9px;padding:9px 10px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;">
+        <option value="tous" ${facFiltreStatut==='tous'?'selected':''}>Toutes</option>
+        <option value="brouillon" ${facFiltreStatut==='brouillon'?'selected':''}>Brouillon</option>
+        <option value="envoyée" ${facFiltreStatut==='envoyée'?'selected':''}>Envoyées</option>
+        <option value="payée" ${facFiltreStatut==='payée'?'selected':''}>Payées</option>
+      </select>
+    </div>
+
+    <!-- Liste -->
     <div class="table-wrap">
-      ${factures.length ? [...factures].reverse().map(f => `
-        <div class="table-row" style="grid-template-columns:auto 1fr auto auto auto" onclick="voirFacture(${f.id})">
-          <div style="width:36px;height:36px;border-radius:50%;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;margin-right:4px;flex-shrink:0">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="1" width="10" height="14" rx="1.5" stroke="var(--teal)" stroke-width="1.4"/><path d="M6 5h4M6 8h4M6 11h2" stroke="var(--teal)" stroke-width="1.3" stroke-linecap="round"/></svg>
+      ${filtered.length ? filtered.map(f => {
+        const statusStyle = f.statut==='payée'
+          ? 'background:rgba(0,200,150,0.1);color:var(--teal);'
+          : f.statut==='envoyée'
+          ? 'background:rgba(100,181,246,0.1);color:#64B5F6;'
+          : 'background:rgba(255,255,255,0.06);color:var(--muted);';
+        return `<div style="padding:13px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer" onclick="voirFacture(${f.id})">
+          <!-- Avatar lettre -->
+          <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,rgba(0,200,150,0.15),rgba(0,200,150,0.05));border:1px solid rgba(0,200,150,0.2);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--teal);flex-shrink:0">
+            ${f.client.charAt(0).toUpperCase()}
           </div>
-          <div>
-            <div class="prod-name">${f.client}</div>
-            <div class="prod-cat">${f.num} · ${formatDate(f.date)}</div>
+          <!-- Info -->
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:600;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.client}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${f.num} · ${formatDate(f.date)}${f.heureCreation?' à '+f.heureCreation:''}</div>
           </div>
-          <span class="badge facture-status-${f.statut==='payée'?'paid':f.statut==='envoyée'?'sent':'draft'}" style="margin-right:8px">${f.statut}</span>
-          <div style="font-size:14px;font-weight:600;color:var(--teal);margin-right:8px">${fmt(f.total)}</div>
-          <button onclick="event.stopPropagation();supprimerFacture(${f.id})" style="background:var(--danger-dim);border:none;color:var(--danger);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px">×</button>
-        </div>`).join('')
-      : `<div class="empty" style="padding:60px 20px">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="8" y="4" width="24" height="32" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M14 14h12M14 20h12M14 26h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          <p style="margin-top:12px">Aucune facture créée<br>Appuyez sur "Nouvelle facture"</p>
-        </div>`}
+          <!-- Statut + montant -->
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--cream)">${fmt(f.total)}</div>
+            <div style="margin-top:4px">
+              <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;${statusStyle}">${f.statut}</span>
+            </div>
+          </div>
+          <!-- Actions rapides -->
+          <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0" onclick="event.stopPropagation()">
+            ${f.statut!=='payée'?`<button onclick="marquerPayee(${f.id})" style="background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.2);color:var(--teal);width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:13px" title="Marquer payée">✓</button>`:''}
+            <button onclick="supprimerFacture(${f.id})" style="background:rgba(255,90,90,0.08);border:1px solid rgba(255,90,90,0.15);color:var(--danger);width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:13px" title="Supprimer">×</button>
+          </div>
+        </div>`;
+      }).join('') : `<div class="empty" style="padding:48px 20px">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" style="opacity:.3"><rect x="8" y="4" width="24" height="32" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M14 14h12M14 20h12M14 26h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <p style="margin-top:12px;font-size:14px">${facSearch||facFiltreStatut!=='tous'?'Aucune facture correspondante':'Aucune facture — appuyez sur + Nouvelle facture'}</p>
+      </div>`}
     </div>`;
+}
+
+function setFacFiltre(s) { facFiltreStatut = s; render(); }
+
+function marquerPayee(id) {
+  const f = factures.find(x=>x.id===id);
+  if (!f) return;
+  f.statut = 'payée';
+  save(); render();
+  showToast('Facture marquée comme payée ✓', 'success');
 }
 
 // ═══════════════════════════════════════
