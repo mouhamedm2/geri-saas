@@ -1043,22 +1043,7 @@ function sanitizeInput(str) {
   return d.innerHTML;
 }
 
-// ── Démo sécurisé : token signé + expiration 30min ──
-function setDemoToken() {
-  const token = { ts: Date.now(), exp: Date.now() + 30*60*1000, sig: btoa('geri-demo-'+Date.now()) };
-  sessionStorage.setItem('geri_demo_token', JSON.stringify(token));
-}
-function isDemoValid() {
-  try {
-    const raw = sessionStorage.getItem('geri_demo_token');
-    if (!raw) return false;
-    const t = JSON.parse(raw);
-    if (!t.sig || !t.exp) return false;
-    if (Date.now() > t.exp) { sessionStorage.removeItem('geri_demo_token'); return false; }
-    return true;
-  } catch { return false; }
-}
-const isDemo = isDemoValid();
+// Mode démo supprimé — tout le monde doit créer un compte
 let boutiqueId = sessionStorage.getItem('geri_boutique_id') || null;
 // sessionStorage : effacé à la fermeture du navigateur (plus sûr que localStorage)
 let userId = sessionStorage.getItem('geri_user_id') || null;
@@ -1071,7 +1056,7 @@ const DB = {
 
 // ── Sync Supabase → localStorage ──
 async function syncFromCloud() {
-  if (!_supabase || isDemo || !boutiqueId) return;
+  if (!_supabase || !boutiqueId) return;
   try {
     const [p, v, d, f, e] = await Promise.all([
       _supabase.from('produits').select('*').eq('boutique_id', boutiqueId),
@@ -1098,7 +1083,7 @@ function adaptFacture(r) { return { id:r.id, num:r.num, client:r.client, tel:r.t
 
 // ── Save avec Supabase ──
 async function saveToCloud(table, data) {
-  if (!_supabase || isDemo || !boutiqueId) return;
+  if (!_supabase || !boutiqueId) return;
   try {
     const row = { ...data, boutique_id: boutiqueId };
     await _supabase.from(table).upsert(row, { onConflict: 'id' });
@@ -4013,12 +3998,6 @@ function ajouterDepuisScan(prodId) {
 }
 
 async function initApp() {
-  if (isDemo) {
-    // Mode démo : données localStorage seulement
-    // mode démo
-    save(); render();
-    return;
-  }
   if (_supabase) {
     const { data: { session } } = await _supabase.auth.getSession();
     if (!session) {
@@ -4063,9 +4042,7 @@ async function initApp() {
 function deconnexion() {
   if (!confirm('Se déconnecter ?')) return;
   if (_supabase) _supabase.auth.signOut();
-  localStorage.removeItem('geri_user_id');
-  localStorage.removeItem('geri_boutique_id');
-  localStorage.removeItem('geri_demo');
+  sessionStorage.clear();
   window.location.href = 'auth.html';
 }
 
