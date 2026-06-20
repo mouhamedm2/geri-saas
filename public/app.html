@@ -2543,144 +2543,142 @@ function sauvegarderFacture() {
 
 function buildFactureHTML(f) {
   const shopName = DB.get('shopname') || 'Ma Boutique';
-  const shopInfo = DB.get('shopinfo') || {};
-  const subtotal = f.lignes.reduce((s,l) => s + l.prix*l.qte, 0);
-  const tva = 0; // pas de TVA par défaut
-  const maxVal = Math.max(...f.lignes.map(l => l.prix*l.qte), 1);
+  const shopTel  = DB.get('shoptel')  || '';
+  const shopVille = DB.get('shopville') || 'Sénégal';
+  const shopAdresse = DB.get('shopadresse') || '';
+  const shopLogo = DB.get('shoplogo') || '';
+  const shopFooter = DB.get('shopfooter') || 'Merci pour votre confiance !';
+  const shopHoraires = DB.get('shophoraires') || '';
+  const shopEmail = sessionStorage.getItem('geri_email') || '';
 
-  // Graphique à barres SVG inline
-  const barWidth = 40;
-  const barGap = 14;
-  const chartH = 80;
-  const svgW = f.lignes.length * (barWidth + barGap) + barGap;
-  const bars = f.lignes.map((l, i) => {
-    const val = l.prix * l.qte;
-    const bh = Math.max(4, Math.round((val / maxVal) * chartH));
-    const x = barGap + i * (barWidth + barGap);
-    const y = chartH - bh + 10;
-    const label = l.desc.length > 8 ? l.desc.substring(0,8)+'…' : l.desc;
-    return `
-      <rect x="${x}" y="${y}" width="${barWidth}" height="${bh}" rx="6"
-        fill="url(#barGrad)" opacity="0.92"/>
-      <text x="${x + barWidth/2}" y="${chartH + 24}" text-anchor="middle"
-        font-size="8" fill="#aaa" font-family="DM Sans,sans-serif">${label}</text>
-      <text x="${x + barWidth/2}" y="${y - 4}" text-anchor="middle"
-        font-size="7.5" fill="#00C896" font-weight="700" font-family="DM Sans,sans-serif">
-        ${Number(val).toLocaleString('fr-SN')}
-      </text>`;
-  }).join('');
+  const subtotal = f.lignes.reduce((s,l) => s + (l.prix||0)*(l.qte||1), 0);
+  const remisePct = f.remise || 0;
+  const tvaPct = f.tva || 0;
+  const remiseAmt = f.remiseAmt || Math.round(subtotal * remisePct / 100);
+  const tvaAmt = f.tvaAmt || Math.round((subtotal - remiseAmt) * tvaPct / 100);
+  const total = f.total || Math.round(subtotal - remiseAmt + tvaAmt);
 
-  const chartSvg = f.lignes.length > 1 ? `
-    <div style="margin:18px 0 6px;padding:16px 12px 8px;background:#f7fbf9;border-radius:12px;border:1px solid #e8f5f0">
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:8px">
-        RÉPARTITION PAR ARTICLE
-      </div>
-      <svg width="100%" viewBox="0 0 ${Math.max(svgW,200)} ${chartH+34}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#00C896"/>
-            <stop offset="100%" stop-color="#00a87a"/>
-          </linearGradient>
-        </defs>
-        ${bars}
+  const statusColor = f.statut === 'payée' ? '#00C896' : f.statut === 'envoyée' ? '#1565C0' : '#888';
+  const statusLabel = f.statut === 'payée' ? '✓ PAYÉE' : f.statut === 'envoyée' ? '➤ ENVOYÉE' : '◎ BROUILLON';
+  const statusBg = f.statut === 'payée' ? '#E8F5E9' : f.statut === 'envoyée' ? '#E3F2FD' : '#F5F5F5';
+
+  // Date échéance (30 jours par défaut)
+  const dateObj = new Date(f.date || new Date());
+  const echeanceObj = new Date(dateObj); echeanceObj.setDate(echeanceObj.getDate() + 30);
+  const echeance = echeanceObj.toLocaleDateString('fr-SN');
+
+  return `<div id="fac-print-zone" style="background:#fff;font-family:'DM Sans',Arial,sans-serif;color:#1a1a1a;max-width:620px;margin:0 auto;box-shadow:0 4px 32px rgba(0,0,0,0.1);border-radius:4px;overflow:hidden">
+
+    <!-- HEADER TEAL -->
+    <div style="background:#00897B;position:relative;overflow:hidden">
+      <!-- Vague décorative -->
+      <svg style="position:absolute;bottom:0;left:0;right:0;display:block" viewBox="0 0 620 40" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+        <path d="M0 40 Q155 0 310 20 Q465 40 620 10 L620 40 Z" fill="rgba(0,0,0,0.15)"/>
+        <path d="M0 40 Q155 10 310 30 Q465 50 620 20 L620 40 Z" fill="rgba(0,0,0,0.08)"/>
       </svg>
-    </div>` : '';
-
-  const statusColor = f.statut === 'payée' ? '#00C896' : f.statut === 'envoyée' ? '#F5C842' : '#aaa';
-  const statusLabel = f.statut === 'payée' ? 'PAYÉE' : f.statut === 'envoyée' ? 'ENVOYÉE' : 'BROUILLON';
-
-  return `<div id="fac-print-zone" style="background:#fff;font-family:'DM Sans',sans-serif;color:#111;border-radius:16px;overflow:hidden;max-width:600px;margin:0 auto;box-shadow:0 8px 40px rgba(0,0,0,0.12)">
-
-    <!-- HEADER PREMIUM -->
-    <div style="background:linear-gradient(135deg,#0A1628 0%,#0d2444 60%,#0a2e1f 100%);padding:28px 28px 22px;position:relative;overflow:hidden">
-      <!-- Cercles décoratifs -->
-      <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;border:1px solid rgba(0,200,150,0.15)"></div>
-      <div style="position:absolute;top:-10px;right:-10px;width:70px;height:70px;border-radius:50%;border:1px solid rgba(0,200,150,0.1)"></div>
-      <div style="position:absolute;bottom:-20px;left:40px;width:80px;height:80px;border-radius:50%;background:rgba(0,200,150,0.04)"></div>
-
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:24px 28px 40px;position:relative;z-index:1">
+        <!-- Gauche : mot FACTURE -->
         <div>
-          <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#00C896;letter-spacing:-0.5px;line-height:1">${shopName}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:5px">${shopInfo.ville || 'Sénégal'}${shopInfo.tel ? ' · ' + shopInfo.tel : ''}</div>
-          <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,200,150,0.12);border:1px solid rgba(0,200,150,0.25);border-radius:20px;padding:3px 10px;margin-top:10px">
-            <div style="width:5px;height:5px;border-radius:50%;background:${statusColor}"></div>
-            <span style="font-size:9px;font-weight:700;letter-spacing:.1em;color:${statusColor}">${statusLabel}</span>
-          </div>
+          <div style="font-size:36px;font-weight:900;color:#fff;letter-spacing:2px;line-height:1">FACTURE</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:6px;letter-spacing:.06em">N° ${f.num}</div>
         </div>
+        <!-- Droite : infos boutique -->
         <div style="text-align:right">
-          <div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.35)">FACTURE</div>
-          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-top:2px">${f.num}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px">Émise le ${formatDate(f.date)}${f.heureCreation ? ' à ' + f.heureCreation : ''}</div>
+          ${shopLogo ? `<img src="${shopLogo}" style="height:40px;width:auto;border-radius:6px;margin-bottom:8px;display:block;margin-left:auto">` : ''}
+          <div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-.3px">${shopName}</div>
+          ${shopTel ? `<div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px">☎ ${shopTel}</div>` : ''}
+          ${shopEmail ? `<div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px">✉ ${shopEmail}</div>` : ''}
+          ${shopVille ? `<div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px">📍 ${shopVille}${shopAdresse ? ', ' + shopAdresse : ''}</div>` : ''}
         </div>
       </div>
-
-      <!-- Ligne décorative verte -->
-      <div style="height:2px;background:linear-gradient(90deg,#00C896,rgba(0,200,150,0.1));margin-top:20px;border-radius:2px"></div>
     </div>
 
-    <!-- BODY -->
-    <div style="padding:24px 28px">
-
-      <!-- CLIENT -->
-      <div style="display:flex;gap:12px;margin-bottom:20px">
-        <div style="flex:1;background:#f8fafb;border-left:3px solid #00C896;border-radius:0 10px 10px 0;padding:14px 16px">
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#00C896;margin-bottom:6px">Facturé à</div>
-          <div style="font-size:16px;font-weight:700;color:#111">${f.client}</div>
-          ${f.tel ? `<div style="font-size:12px;color:#777;margin-top:3px">📱 ${f.tel}</div>` : ''}
-          ${f.note ? `<div style="font-size:11px;color:#999;margin-top:4px;font-style:italic">${f.note}</div>` : ''}
-        </div>
-        <div style="background:#f8fafb;border-radius:10px;padding:14px 16px;text-align:right;min-width:110px">
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#aaa;margin-bottom:6px">Date</div>
-          <div style="font-size:13px;font-weight:600;color:#111">${formatDate(f.date)}</div>
-          <div style="font-size:9px;color:#bbb;margin-top:8px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Réf.</div>
-          <div style="font-size:12px;font-weight:700;color:#00C896">${f.num}</div>
-        </div>
+    <!-- BANDE INFOS FACTURE -->
+    <div style="background:#f8f9fa;border-bottom:1px solid #e8e8e8;padding:12px 28px;display:flex;gap:24px;font-size:12px">
+      <div><span style="color:#888">N° de facture :</span> <strong style="color:#1a1a1a">${f.num}</strong></div>
+      <div><span style="color:#888">Date :</span> <strong style="color:#1a1a1a">${formatDate(f.date)}</strong></div>
+      <div><span style="color:#888">Échéance :</span> <strong style="color:#1a1a1a">${echeance}</strong></div>
+      <div style="margin-left:auto">
+        <span style="background:${statusBg};color:${statusColor};font-weight:700;font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid ${statusColor}20">${statusLabel}</span>
       </div>
+    </div>
 
-      <!-- TABLEAU ARTICLES -->
-      <table style="width:100%;border-collapse:collapse">
+    <!-- FACTURÉ À / BOUTIQUE -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;padding:20px 28px;border-bottom:1px solid #f0f0f0">
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#00897B;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Facturé à</div>
+        <div style="font-size:15px;font-weight:700;color:#1a1a1a">${f.client}</div>
+        ${f.tel ? `<div style="font-size:12px;color:#555;margin-top:4px">☎ ${f.tel}</div>` : ''}
+        ${f.note ? `<div style="font-size:12px;color:#777;margin-top:4px;font-style:italic">${f.note}</div>` : ''}
+      </div>
+      <div style="padding-left:20px;border-left:1px solid #f0f0f0">
+        <div style="font-size:13px;font-weight:800;color:#00897B;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Émis par</div>
+        <div style="font-size:14px;font-weight:700;color:#1a1a1a">${shopName}</div>
+        ${shopTel ? `<div style="font-size:12px;color:#555;margin-top:4px">☎ ${shopTel}</div>` : ''}
+        ${shopVille ? `<div style="font-size:12px;color:#555;margin-top:3px">📍 ${shopVille}</div>` : ''}
+        ${shopHoraires ? `<div style="font-size:11px;color:#888;margin-top:3px">🕐 ${shopHoraires}</div>` : ''}
+      </div>
+    </div>
+
+    <!-- TABLEAU ARTICLES -->
+    <div style="padding:0 28px 20px">
+      <table style="width:100%;border-collapse:collapse;margin-top:16px">
         <thead>
-          <tr style="background:linear-gradient(90deg,#0A1628,#0d2444)">
-            <th style="padding:10px 12px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.5);border-radius:8px 0 0 8px">Article</th>
-            <th style="padding:10px 8px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.5)">Qté</th>
-            <th style="padding:10px 8px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.5)">P.U.</th>
-            <th style="padding:10px 12px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,0.5);border-radius:0 8px 8px 0">Montant</th>
+          <tr style="background:#00897B">
+            <th style="padding:10px 12px;text-align:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;width:40px">QTE</th>
+            <th style="padding:10px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff">DÉSIGNATION</th>
+            <th style="padding:10px 12px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff">PRIX UNIT. HT</th>
+            <th style="padding:10px 12px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff">MONTANT HT</th>
           </tr>
         </thead>
         <tbody>
           ${f.lignes.map((l,i) => `
-          <tr style="border-bottom:1px solid #f0f0f0;${i%2===0?'background:#fafdfb':''}">
-            <td style="padding:11px 12px;font-size:13px;color:#222;font-weight:500">${l.desc}</td>
-            <td style="padding:11px 8px;text-align:center;font-size:13px;color:#666;background:rgba(0,200,150,0.04)">${l.qte}</td>
-            <td style="padding:11px 8px;text-align:right;font-size:12px;color:#888">${Number(l.prix).toLocaleString('fr-SN')} F</td>
-            <td style="padding:11px 12px;text-align:right;font-size:13px;font-weight:700;color:#111">${Number(l.prix*l.qte).toLocaleString('fr-SN')} F</td>
+          <tr style="border-bottom:1px solid #f0f0f0;background:${i%2===0?'#fff':'#f9fafb'}">
+            <td style="padding:10px 12px;text-align:center;font-size:13px;color:#555;font-weight:600">${l.qte}</td>
+            <td style="padding:10px 12px;font-size:13px;color:#1a1a1a">${l.desc}</td>
+            <td style="padding:10px 12px;text-align:right;font-size:13px;color:#555">${Number(l.prix).toLocaleString('fr-SN')}</td>
+            <td style="padding:10px 12px;text-align:right;font-size:13px;font-weight:700;color:#1a1a1a">${Number(l.prix*l.qte).toLocaleString('fr-SN')}</td>
           </tr>`).join('')}
         </tbody>
       </table>
 
-      <!-- GRAPHIQUE -->
-      ${chartSvg}
-
-      <!-- TOTAL -->
-      <div style="background:linear-gradient(135deg,#0A1628,#0d2444);border-radius:12px;padding:18px 20px;margin-top:18px;display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,0.4)">Total à payer</div>
-          ${tva > 0 ? `<div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px">HT: ${Number(subtotal).toLocaleString('fr-SN')} F · TVA: ${Number(tva).toLocaleString('fr-SN')} F</div>` : ''}
+      <!-- TOTAUX -->
+      <div style="display:flex;justify-content:flex-end;margin-top:8px">
+        <div style="width:260px">
+          <div style="display:flex;justify-content:space-between;padding:8px 12px;font-size:13px;color:#555;border-bottom:1px solid #f0f0f0">
+            <span>MONTANT HT</span>
+            <span style="font-weight:600;color:#1a1a1a">${Number(subtotal).toLocaleString('fr-SN')}</span>
+          </div>
+          ${remisePct > 0 ? `<div style="display:flex;justify-content:space-between;padding:8px 12px;font-size:13px;color:#E65100;border-bottom:1px solid #f0f0f0">
+            <span>REMISE (${remisePct}%)</span>
+            <span style="font-weight:600">- ${Number(remiseAmt).toLocaleString('fr-SN')}</span>
+          </div>` : ''}
+          <div style="display:flex;justify-content:space-between;padding:8px 12px;font-size:13px;color:#555;border-bottom:2px solid #1a1a1a">
+            <span>TVA ${tvaPct > 0 ? tvaPct+'%' : '(0%)'}</span>
+            <span style="font-weight:600;color:#1a1a1a">${Number(tvaAmt).toLocaleString('fr-SN')}</span>
+          </div>
+          <!-- TOTAL TTC EN ÉVIDENCE -->
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#00897B">
+            <span style="font-size:14px;font-weight:800;color:#fff;letter-spacing:.04em">TOTAL TTC</span>
+            <span style="font-size:20px;font-weight:900;color:#fff">${Number(total).toLocaleString('fr-SN')} FCFA</span>
+          </div>
         </div>
-        <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#00C896">${fmt(f.total)}</div>
-      </div>
-
-      <!-- MERCI -->
-      <div style="text-align:center;margin-top:20px;padding:14px;border:1px dashed rgba(0,200,150,0.25);border-radius:10px;background:rgba(0,200,150,0.02)">
-        <div style="font-size:13px;font-weight:600;color:#333">Merci pour votre confiance 🙏</div>
-        <div style="font-size:11px;color:#aaa;margin-top:3px">${shopName} · Propulsé par <span style="color:#00C896;font-weight:700">Géri</span></div>
       </div>
     </div>
 
-    <!-- FOOTER BANDE -->
-    <div style="background:linear-gradient(90deg,#0A1628,#0d2444);padding:10px 28px;display:flex;justify-content:space-between;align-items:center">
-      <div style="font-size:9px;color:rgba(255,255,255,0.25);letter-spacing:.06em">GÉRI · GESTION BOUTIQUE SÉNÉGAL</div>
-      <div style="font-size:9px;color:rgba(255,255,255,0.25)">geri-saas.vercel.app</div>
+    <!-- CONDITIONS -->
+    <div style="padding:14px 28px;border-top:1px solid #f0f0f0">
+      <div style="font-size:12px;font-weight:700;color:#00897B;margin-bottom:4px">Conditions et modalités de paiement</div>
+      <div style="font-size:12px;color:#555">Le paiement est dû dans les 30 jours. Modes acceptés : Wave, Orange Money, Espèces.</div>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="background:#1a1a1a;padding:14px 28px;text-align:center">
+      <div style="font-size:11px;color:rgba(255,255,255,0.6)">
+        ${shopTel ? 'TEL : ' + shopTel + (shopEmail ? ' &nbsp;|&nbsp; ' : '') : ''}${shopEmail ? 'EMAIL : ' + shopEmail : ''}
+      </div>
+      <div style="font-size:12px;color:#00C896;font-weight:600;margin-top:4px">${shopFooter}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px">Propulsé par Géri · geri-saas.vercel.app</div>
     </div>
   </div>`;
 }
