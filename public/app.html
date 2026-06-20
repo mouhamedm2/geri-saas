@@ -706,11 +706,11 @@ html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(-
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
       <div class="form-group" style="margin:0">
         <label class="form-label">Remise (%)</label>
-        <input class="form-input" id="fac-remise" type="number" min="0" max="100" placeholder="0" oninput="updateFacTotal()">
+        <input class="form-input" id="fac-remise" type="number" min="0" max="100" placeholder="0" oninput="calcFacTotal()">
       </div>
       <div class="form-group" style="margin:0">
         <label class="form-label">TVA (%)</label>
-        <input class="form-input" id="fac-tva" type="number" min="0" max="30" placeholder="0" oninput="updateFacTotal()">
+        <input class="form-input" id="fac-tva" type="number" min="0" max="30" placeholder="0" oninput="calcFacTotal()">
       </div>
     </div>
 
@@ -1210,6 +1210,10 @@ function closeModal(id) {
 // ═══════════════════════════════════════
 // TOAST
 // ═══════════════════════════════════════
+function showToast(msg, type) {
+  // Alias pour compatibilité
+  toast(msg);
+}
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -2497,7 +2501,7 @@ function updateLigneFac(i, key, val) {
 }
 
 function majTotalFac() {
-  updateFacTotal();
+  calcFacTotal();
 }
 
 function sauvegarderFacture() {
@@ -2813,7 +2817,7 @@ async function genererPDFFacture(telecharger = false) {
 
   if (telecharger) {
     // Ouvrir dans nouvelle fenêtre avec bouton print
-    showToast('📄 Ouverture de la facture…', 'info');
+    toast('📄 Ouverture de la facture…');
     const win = window.open('', '_blank', 'width=700,height=900');
     if (win) {
       win.document.write(fullHTML);
@@ -2856,12 +2860,12 @@ function imprimerFacture() {
     setTimeout(() => {
       try { win.focus(); win.print(); } catch(e) {}
     }, 800);
-    showToast('📄 Fenêtre ouverte — cliquez Imprimer ou Enregistrer PDF', 'success');
+    toast('📄 Ouvert — Imprimer ou Enregistrer en PDF');
     return;
   }
 
   // Méthode 2 : fallback blob téléchargeable si popup bloqué
-  showToast('⬇ Téléchargement du fichier HTML…', 'info');
+  toast('⬇ Téléchargement en cours…');
   const blob = new Blob([fullHTML], { type: 'text/html;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -2871,7 +2875,7 @@ function imprimerFacture() {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 3000);
-  showToast('📥 Ouvrez le fichier téléchargé et imprimez en PDF', 'info');
+  toast('📥 Ouvrez le fichier et imprimez en PDF');
 }
 
 async function partagerWhatsAppPDF() {
