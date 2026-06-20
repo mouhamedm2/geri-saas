@@ -2839,7 +2839,39 @@ async function genererPDFFacture(telecharger = false) {
 }
 
 function imprimerFacture() {
-  genererPDFFacture(true);
+  const f = factures.find(f => f.id === currentFactureId);
+  if (!f) { showToast('Facture introuvable', 'error'); return; }
+
+  const filename = 'Facture-' + f.num + '-' + (f.client||'client').replace(/[^a-zA-Z0-9]/g, '-') + '.pdf';
+  const fullHTML = buildFullPageHTML(f);
+
+  // Méthode 1 : nouvelle fenêtre (la plus fiable, déclenché directement par le clic)
+  const win = window.open('', '_blank');
+  if (win) {
+    win.document.open();
+    win.document.write(fullHTML);
+    win.document.close();
+    win.document.title = filename;
+    // Lancer l'impression automatiquement après 800ms
+    setTimeout(() => {
+      try { win.focus(); win.print(); } catch(e) {}
+    }, 800);
+    showToast('📄 Fenêtre ouverte — cliquez Imprimer ou Enregistrer PDF', 'success');
+    return;
+  }
+
+  // Méthode 2 : fallback blob téléchargeable si popup bloqué
+  showToast('⬇ Téléchargement du fichier HTML…', 'info');
+  const blob = new Blob([fullHTML], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename.replace('.pdf', '.html');
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  showToast('📥 Ouvrez le fichier téléchargé et imprimez en PDF', 'info');
 }
 
 async function partagerWhatsAppPDF() {
