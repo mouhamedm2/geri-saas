@@ -2769,74 +2769,72 @@ function copierLienFacture() {
   }
 }
 
+function buildFullPageHTML(f) {
+  // Construire une page HTML complète autonome pour impression/PDF
+  const facHTML = buildFactureHTML(f);
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Facture ${f.num} - ${f.client}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;display:flex;align-items:flex-start;justify-content:center;min-height:100vh;padding:20px}
+  #fac-print-zone{width:100%;max-width:620px}
+  @media print{
+    body{background:#fff;padding:0;display:block}
+    #fac-print-zone{max-width:100%;box-shadow:none!important;border-radius:0!important}
+    .no-print{display:none!important}
+    @page{margin:0;size:A4}
+  }
+</style>
+</head>
+<body>
+<div class="no-print" style="width:100%;max-width:620px;margin:0 auto 16px;display:flex;gap:8px">
+  <button onclick="window.print()" style="flex:1;background:#00897B;color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:Arial">
+    🖨️ Imprimer / Enregistrer PDF
+  </button>
+  <button onclick="window.close()" style="background:#f0f0f0;color:#333;border:none;border-radius:8px;padding:12px 16px;font-size:14px;cursor:pointer;font-family:Arial">
+    ✕ Fermer
+  </button>
+</div>
+${facHTML}
+</body>
+</html>`;
+}
+
 async function genererPDFFacture(telecharger = false) {
   const f = factures.find(f => f.id === currentFactureId);
   if (!f) return null;
 
-  showToast('⏳ Génération PDF…', 'info');
+  const filename = 'Facture-' + f.num + '-' + (f.client||'client').replace(/[^a-zA-Z0-9]/g, '-') + '.pdf';
+  const fullHTML = buildFullPageHTML(f);
 
-  // Créer une iframe visible temporairement (html2pdf marche mieux ainsi)
-  const iframe = document.createElement('iframe');
-  iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:210mm;height:297mm;border:none;background:#fff;';
-  document.body.appendChild(iframe);
-
-  // Injecter le HTML complet dans l'iframe avec fonts système
-  const facHTML = buildFactureHTML(f);
-  const fullHTML = `<!DOCTYPE html><html><head>
-    <meta charset="UTF-8">
-    <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body { font-family: Arial, Helvetica, sans-serif; background: #fff; }
-      @page { margin: 0; }
-    </style>
-  </head><body style="width:600px;margin:0 auto;">${facHTML}</body></html>`;
-
-  iframe.contentDocument.open();
-  iframe.contentDocument.write(fullHTML);
-  iframe.contentDocument.close();
-
-  // Attendre le rendu
-  await new Promise(r => setTimeout(r, 600));
-
-  const filename = 'Facture-' + f.num + '-' + f.client.replace(/\s+/g, '-') + '.pdf';
-
-  const opt = {
-    margin: 0,
-    filename,
-    image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      width: 600,
-    },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-  };
-
-  try {
-    const element = iframe.contentDocument.body;
-    if (telecharger) {
-      await html2pdf().set(opt).from(element).save();
-      showToast('✅ PDF téléchargé !', 'success');
-      document.body.removeChild(iframe);
-      return null;
+  if (telecharger) {
+    // Ouvrir dans nouvelle fenêtre avec bouton print
+    showToast('📄 Ouverture de la facture…', 'info');
+    const win = window.open('', '_blank', 'width=700,height=900');
+    if (win) {
+      win.document.write(fullHTML);
+      win.document.close();
+      // Titre de la fenêtre = nom du fichier
+      win.document.title = filename;
     } else {
-      const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
-      document.body.removeChild(iframe);
-      return blob;
+      // Popup bloqué → créer un blob téléchargeable
+      const blob = new Blob([fullHTML], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename.replace('.pdf', '.html');
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+      showToast('📥 Fichier téléchargé — ouvrez-le et imprimez en PDF', 'success');
     }
-  } catch(e) {
-    console.error('PDF error:', e);
-    document.body.removeChild(iframe);
-    // Fallback : impression navigateur
-    const win = window.open('', '_blank');
-    win.document.write(fullHTML);
-    win.document.close();
-    setTimeout(() => { win.focus(); win.print(); }, 500);
-    showToast('Ouverture impression navigateur', 'info');
     return null;
+  } else {
+    // Retourner le HTML comme blob pour WhatsApp
+    return new Blob([fullHTML], { type: 'text/html;charset=utf-8' });
   }
 }
 
