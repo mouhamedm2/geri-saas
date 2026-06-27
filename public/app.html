@@ -841,7 +841,7 @@ function showTrialBanner(daysLeft) {
   `;
   banner.innerHTML = `
     <span>⏰ Il vous reste <strong>${daysLeft} jour${daysLeft>1?'s':''}</strong> d'essai gratuit</span>
-    <button onclick="openPaymentModal()" style="background:#0A1628;color:#F5C842;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">
+    <button onclick="window.location.href='paiement.html'" style="background:#0A1628;color:#F5C842;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">
       Passer Pro →
     </button>
   `;
