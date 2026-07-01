@@ -1,0 +1,643 @@
+/**
+ * GÉRI — Interface Mobile Adaptative
+ * Style inspiré de la capture : fond sombre, vert vif, cards arrondies
+ * Mix avec l'identité Géri (bleu nuit + teal)
+ */
+
+/* ════════════════════════════════════════
+   VARIABLES MOBILE
+════════════════════════════════════════ */
+:root {
+  --m-bg:        #0f1923;   /* Fond principal mobile (plus chaud que desktop) */
+  --m-card:      #1a2535;   /* Fond des cards */
+  --m-card2:     #1f2d40;   /* Fond secondaire */
+  --m-teal:      #00C896;   /* Accent principal */
+  --m-teal-dark: #00a87a;
+  --m-gold:      #F5C842;
+  --m-red:       #FF5A5A;
+  --m-orange:    #FF8C42;
+  --m-blue:      #4A9EFF;
+  --m-purple:    #A855F7;
+  --m-text:      #F0EDE8;
+  --m-muted:     rgba(240, 237, 232, 0.5);
+  --m-border:    rgba(255, 255, 255, 0.07);
+  --m-radius:    16px;
+  --m-radius-sm: 10px;
+  --m-shadow:    0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ════════════════════════════════════════
+   MOBILE ONLY — s'active sous 768px
+════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ── Reset mobile ── */
+  body {
+    background: var(--m-bg) !important;
+    padding-bottom: 72px;
+  }
+
+  /* ── Cacher la sidebar desktop ── */
+  .sidebar { display: none !important; }
+
+  /* ── Topbar mobile ── */
+  .topbar {
+    left: 0 !important;
+    background: var(--m-bg) !important;
+    border-bottom: none !important;
+    padding: 0 16px !important;
+    height: 56px !important;
+  }
+
+  /* ── Content ── */
+  .content {
+    margin-left: 0 !important;
+    padding: 8px 14px 16px !important;
+    margin-top: 56px !important;
+  }
+
+  /* ── Bottom nav mobile redesign ── */
+  .bottomnav {
+    display: flex !important;
+    background: var(--m-card) !important;
+    border-top: 1px solid var(--m-border) !important;
+    padding: 0 8px !important;
+    height: 68px !important;
+  }
+
+  .bnav-item {
+    font-size: 10px !important;
+    color: var(--m-muted) !important;
+    padding: 8px 4px !important;
+    border-radius: 12px !important;
+    margin: 6px 2px !important;
+    transition: all 0.15s !important;
+    gap: 3px !important;
+  }
+
+  .bnav-item.active {
+    background: rgba(0, 200, 150, 0.12) !important;
+    color: var(--m-teal) !important;
+  }
+
+  .bnav-item svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* ════════════════════════════════════════
+     DASHBOARD MOBILE
+  ════════════════════════════════════════ */
+
+  /* Card principale CA */
+  .mobile-hero-card {
+    background: linear-gradient(135deg, var(--m-teal) 0%, var(--m-teal-dark) 100%);
+    border-radius: var(--m-radius);
+    padding: 20px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mobile-hero-card::before {
+    content: '';
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .mobile-hero-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(10, 22, 40, 0.7);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .mobile-hero-amount {
+    font-family: 'Syne', sans-serif;
+    font-size: 34px;
+    font-weight: 800;
+    color: #0A1628;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .mobile-hero-trend {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(10, 22, 40, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .mobile-hero-sub {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(10, 22, 40, 0.15);
+  }
+
+  .mobile-hero-sub-item {
+    text-align: center;
+  }
+
+  .mobile-hero-sub-label {
+    font-size: 10px;
+    color: rgba(10, 22, 40, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+
+  .mobile-hero-sub-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    color: #0A1628;
+  }
+
+  /* Grille d'actions rapides */
+  .mobile-actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .mobile-action-card {
+    background: var(--m-card);
+    border-radius: var(--m-radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s;
+    border: 1px solid var(--m-border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .mobile-action-card:active {
+    transform: scale(0.97);
+    background: var(--m-card2);
+  }
+
+  .mobile-action-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .mobile-action-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--m-text);
+  }
+
+  .mobile-action-sub {
+    font-size: 11px;
+    color: var(--m-muted);
+    margin-top: 2px;
+  }
+
+  /* Couleurs des icônes d'action */
+  .icon-bg-teal   { background: rgba(0, 200, 150, 0.15); }
+  .icon-bg-blue   { background: rgba(74, 158, 255, 0.15); }
+  .icon-bg-gold   { background: rgba(245, 200, 66, 0.15); }
+  .icon-bg-purple { background: rgba(168, 85, 247, 0.15); }
+  .icon-bg-orange { background: rgba(255, 140, 66, 0.15); }
+  .icon-bg-red    { background: rgba(255, 90, 90, 0.15); }
+
+  /* Transactions récentes */
+  .mobile-section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--m-text);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .mobile-section-link {
+    font-size: 12px;
+    color: var(--m-teal);
+    font-weight: 500;
+  }
+
+  .mobile-transaction-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--m-card);
+    border-radius: var(--m-radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border: 1px solid var(--m-border);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .mobile-transaction-item:active {
+    background: var(--m-card2);
+  }
+
+  .mobile-transaction-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .mobile-transaction-icon.success { background: rgba(0, 200, 150, 0.12); }
+  .mobile-transaction-icon.pending { background: rgba(245, 200, 66, 0.12); }
+  .mobile-transaction-icon.expense { background: rgba(255, 90, 90, 0.12); }
+
+  .mobile-transaction-info { flex: 1; min-width: 0; }
+
+  .mobile-transaction-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--m-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-transaction-time {
+    font-size: 11px;
+    color: var(--m-muted);
+    margin-top: 2px;
+  }
+
+  .mobile-transaction-amount {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .mobile-transaction-amount.positive { color: var(--m-teal); }
+  .mobile-transaction-amount.negative { color: var(--m-red); }
+
+  /* ════════════════════════════════════════
+     CAISSE MOBILE
+  ════════════════════════════════════════ */
+
+  .mobile-caisse-search {
+    background: var(--m-card);
+    border: 1px solid var(--m-border);
+    border-radius: var(--m-radius-sm);
+    padding: 11px 14px 11px 40px;
+    color: var(--m-text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    width: 100%;
+    outline: none;
+    margin-bottom: 12px;
+  }
+
+  .mobile-prod-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .mobile-prod-card {
+    background: var(--m-card);
+    border: 1px solid var(--m-border);
+    border-radius: var(--m-radius);
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    text-align: center;
+  }
+
+  .mobile-prod-card:active { transform: scale(0.96); }
+
+  .mobile-prod-card.in-cart {
+    border-color: var(--m-teal);
+    background: rgba(0, 200, 150, 0.08);
+  }
+
+  .mobile-prod-emoji {
+    font-size: 28px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .mobile-prod-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--m-text);
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .mobile-prod-price {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--m-teal);
+  }
+
+  .mobile-prod-stock {
+    font-size: 10px;
+    color: var(--m-muted);
+    margin-top: 2px;
+  }
+
+  .mobile-prod-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--m-teal);
+    color: #0A1628;
+    font-size: 10px;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Barre panier flottante */
+  .mobile-cart-float {
+    position: fixed;
+    bottom: 76px;
+    left: 14px;
+    right: 14px;
+    background: var(--m-teal);
+    border-radius: var(--m-radius);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    z-index: 90;
+    transform: translateY(200%);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 8px 24px rgba(0, 200, 150, 0.4);
+  }
+
+  .mobile-cart-float.visible {
+    transform: translateY(0);
+  }
+
+  .mobile-cart-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0A1628;
+  }
+
+  .mobile-cart-total {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: #0A1628;
+  }
+
+  /* ════════════════════════════════════════
+     STOCK MOBILE
+  ════════════════════════════════════════ */
+
+  .mobile-stock-item {
+    background: var(--m-card);
+    border: 1px solid var(--m-border);
+    border-radius: var(--m-radius);
+    padding: 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .mobile-stock-item:active { background: var(--m-card2); }
+
+  .mobile-stock-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(0, 200, 150, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .mobile-stock-info { flex: 1; min-width: 0; }
+
+  .mobile-stock-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--m-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-stock-cat {
+    font-size: 11px;
+    color: var(--m-muted);
+    margin-top: 2px;
+  }
+
+  .mobile-stock-right { text-align: right; flex-shrink: 0; }
+
+  .mobile-stock-qty {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  .mobile-stock-qty.ok     { color: var(--m-teal); }
+  .mobile-stock-qty.low    { color: var(--m-gold); }
+  .mobile-stock-qty.empty  { color: var(--m-red); }
+
+  .mobile-stock-price {
+    font-size: 11px;
+    color: var(--m-muted);
+    margin-top: 2px;
+  }
+
+  /* ════════════════════════════════════════
+     MODALS MOBILE REDESIGN
+  ════════════════════════════════════════ */
+
+  .modal {
+    background: var(--m-card) !important;
+    border-radius: 24px 24px 0 0 !important;
+    padding: 20px 16px 32px !important;
+  }
+
+  .modal-handle {
+    background: rgba(255, 255, 255, 0.12) !important;
+    width: 36px !important;
+    height: 3px !important;
+  }
+
+  .form-input, .form-select {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: var(--m-border) !important;
+    border-radius: 12px !important;
+    padding: 12px 14px !important;
+  }
+
+  .btn-primary {
+    border-radius: 12px !important;
+    padding: 14px !important;
+    font-size: 15px !important;
+  }
+
+  .btn-ghost, .btn-secondary {
+    border-radius: 12px !important;
+  }
+
+  /* ════════════════════════════════════════
+     HEADER MOBILE (salutation)
+  ════════════════════════════════════════ */
+
+  .mobile-greeting {
+    padding: 4px 0 14px;
+  }
+
+  .mobile-greeting-sub {
+    font-size: 12px;
+    color: var(--m-muted);
+    margin-bottom: 2px;
+  }
+
+  .mobile-greeting-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--m-text);
+  }
+
+  /* ════════════════════════════════════════
+     INDICATEUR HORS LIGNE
+  ════════════════════════════════════════ */
+
+  .offline-badge {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 140, 66, 0.9);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 20px;
+    z-index: 500;
+    white-space: nowrap;
+  }
+
+  .offline-badge.visible { display: flex; align-items: center; gap: 6px; }
+
+  /* ════════════════════════════════════════
+     STATS COMPACTES MOBILE
+  ════════════════════════════════════════ */
+
+  .stat-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .stat-card {
+    border-radius: var(--m-radius) !important;
+    background: var(--m-card) !important;
+    border-color: var(--m-border) !important;
+    padding: 14px !important;
+  }
+
+  .stat-val {
+    font-size: 20px !important;
+  }
+
+  /* ════════════════════════════════════════
+     TABLE ROWS MOBILE
+  ════════════════════════════════════════ */
+
+  .table-wrap {
+    border-radius: var(--m-radius) !important;
+    background: var(--m-card) !important;
+    border-color: var(--m-border) !important;
+  }
+
+  .table-row {
+    padding: 12px 14px !important;
+  }
+
+  /* ════════════════════════════════════════
+     BOUTON ACTION FLOTTANT
+  ════════════════════════════════════════ */
+
+  .mobile-fab {
+    position: fixed;
+    bottom: 84px;
+    right: 16px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--m-teal);
+    color: #0A1628;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 85;
+    box-shadow: 0 4px 16px rgba(0, 200, 150, 0.4);
+    transition: transform 0.15s;
+  }
+
+  .mobile-fab:active { transform: scale(0.92); }
+
+  /* ════════════════════════════════════════
+     TOPBAR MOBILE REDESIGN
+  ════════════════════════════════════════ */
+
+  .topbar-title {
+    font-size: 16px !important;
+  }
+
+  #autosave-indicator {
+    display: none !important;
+  }
+
+  .topbar-date {
+    display: none !important;
+  }
+}
