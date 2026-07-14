@@ -830,3 +830,65 @@ a { color: var(--teal); text-decoration: none; }
     padding: 16px 14px 28px !important;
   }
 }
+
+/* ════════════════════════════════════════
+   PANIER — ICÔNE FLOTTANTE AU LIEU DE BARRE
+════════════════════════════════════════ */
+
+/* Cacher l'ancienne barre panier */
+.cart-bar {
+  display: none !important;
+}
+
+/* Bouton flottant panier */
+.cart-fab {
+  position: fixed;
+  bottom: 72px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: var(--ink);
+  border: none;
+  cursor: pointer;
+  z-index: 90;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 200, 150, 0.45);
+  transition: transform 0.15s;
+}
+
+.cart-fab.visible {
+  display: flex;
+}
+
+.cart-fab:active {
+  transform: scale(0.93);
+}
+
+.cart-fab svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Badge nombre d'articles */
+.cart-fab-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #FF5A5A;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  font-family: 'DM Sans', sans-serif;
+  border: 2px solid var(--ink);
+}

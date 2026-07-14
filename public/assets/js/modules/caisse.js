@@ -128,19 +128,18 @@ function addToCart(prodId) {
 }
 
 function _mettreAJourCartBar() {
-  const bar   = document.getElementById('cart-bar');
-  const count = document.getElementById('cart-count');
-  const total = document.getElementById('cart-total');
+  const fab   = document.getElementById('cart-bar');
+  const badge = document.getElementById('cart-count');
 
-  if (!bar) return;
+  if (!fab) return;
 
   const nbArticles = cart.reduce((s, i) => s + i.qte, 0);
-  const montant    = cart.reduce((s, i) => s + i.prix * i.qte, 0);
 
-  if (count) count.textContent = nbArticles;
-  if (total) total.textContent = fmt(montant);
+  // Mettre à jour le badge
+  if (badge) badge.textContent = nbArticles;
 
-  bar.classList.toggle('visible', cart.length > 0);
+  // Afficher/cacher le bouton flottant
+  fab.classList.toggle('visible', cart.length > 0);
 }
 
 function renderCart() {
