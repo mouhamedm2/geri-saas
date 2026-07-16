@@ -23,8 +23,39 @@
   <link rel="stylesheet" href="assets/css/app.css">
   <link rel="stylesheet" href="mobile.css">
 
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <!-- Supabase — NON defer pour auth immédiate -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Auth Guard — vérifie la session AVANT d'afficher quoi que ce soit -->
+  <script>
+    (async function authGuard() {
+      const SUPABASE_URL     = 'https://hjbptsdhxqbitqdiybnf.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqYnB0c2RoeHFiaXRxZGl5Ym5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5MjE4OTAsImV4cCI6MjA5NjQ5Nzg5MH0.EyEc8qfskHGEtFTlj_ZeVN7s8U7xygRP7Szv9QB2Pjw';
+
+      try {
+        // Créer le client Supabase immédiatement
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        window.__supabase = sb;
+
+        // Vérifier la session
+        const { data: { session } } = await sb.auth.getSession();
+
+        if (!session) {
+          // Pas de session → rediriger immédiatement
+          window.location.replace('auth.html');
+          return;
+        }
+
+        // Session valide → sauvegarder et continuer
+        sessionStorage.setItem('geri_user_id', session.user.id);
+        sessionStorage.setItem('geri_email',   session.user.email);
+
+      } catch (err) {
+        console.error('[AuthGuard] Erreur:', err);
+        window.location.replace('auth.html');
+      }
+    })();
+  </script>
 </head>
 
 <body>
