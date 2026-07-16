@@ -12,12 +12,9 @@
 const SUPABASE_URL     = 'https://hjbptsdhxqbitqdiybnf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqYnB0c2RoeHFiaXRxZGl5Ym5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5MjE4OTAsImV4cCI6MjA5NjQ5Nzg5MH0.EyEc8qfskHGEtFTlj_ZeVN7s8U7xygRP7Szv9QB2Pjw';
 
-// Initialiser le client Supabase (disponible globalement)
-const _supabase = window.supabase
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
-
-window.__supabase = _supabase;
+// Client Supabase — initialisé après chargement du script
+// (voir _waitForSupabase au bas du fichier)
+let _supabase = null;
 
 // ════════════════════════════════════════
 // BASE DE DONNÉES LOCALE
@@ -785,4 +782,27 @@ function _afficherRappelPaiement(daysLeft, email) {
 // DÉMARRAGE
 // ════════════════════════════════════════
 
-document.addEventListener('DOMContentLoaded', initApp);
+// Attendre que Supabase soit disponible (chargé en defer)
+function _waitForSupabase(callback, attempts = 0) {
+  if (window.supabase) {
+    // Supabase disponible — initialiser le client
+    window.__supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    callback();
+  } else if (attempts < 20) {
+    // Réessayer toutes les 100ms (max 2 secondes)
+    setTimeout(() => _waitForSupabase(callback, attempts + 1), 100);
+  } else {
+    // Timeout — vérifier session locale
+    console.warn('[App] Supabase timeout — vérification session locale');
+    const userId = sessionStorage.getItem('geri_user_id');
+    if (!userId) {
+      window.location.href = 'auth.html';
+    } else {
+      _demarrerApp({ nom: DB.get('shopname') || 'Ma Boutique' });
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  _waitForSupabase(initApp);
+});
