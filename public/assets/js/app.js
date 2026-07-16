@@ -575,27 +575,26 @@ function searchGlobal(q) {
 // ════════════════════════════════════════
 
 async function initApp() {
-  if (!_supabase) {
-    // Supabase non disponible — vérifier si session locale existe
-    const userId = sessionStorage.getItem('geri_user_id');
-    if (!userId) {
-      // Pas de session locale → rediriger vers auth
+  // Vérifier la session Supabase
+  try {
+    const { data: { session }, error } = await _supabase.auth.getSession();
+
+    if (error || !session) {
+      // Aucune session valide → rediriger vers auth
+      sessionStorage.clear();
       window.location.href = 'auth.html';
       return;
     }
-    // Session locale trouvée → continuer en mode local
-    console.warn('[App] Supabase non disponible — mode local');
-    _demarrerApp({ nom: DB.get('shopname') || 'Ma Boutique' });
-    return;
-  }
-
-  // Vérifier la session
-  const { data: { session } } = await _supabase.auth.getSession();
-
-  if (!session) {
+  } catch (err) {
+    // Erreur Supabase → rediriger vers auth
+    console.error('[Auth] Erreur session:', err);
+    sessionStorage.clear();
     window.location.href = 'auth.html';
     return;
   }
+
+  // Session valide — continuer
+  const { data: { session } } = await _supabase.auth.getSession();
 
   // Écouter les changements d'auth
   _supabase.auth.onAuthStateChange((event, session) => {
