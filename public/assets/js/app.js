@@ -579,6 +579,14 @@ function searchGlobal(q) {
 
 async function initApp() {
   if (!_supabase) {
+    // Supabase non disponible — vérifier si session locale existe
+    const userId = sessionStorage.getItem('geri_user_id');
+    if (!userId) {
+      // Pas de session locale → rediriger vers auth
+      window.location.href = 'auth.html';
+      return;
+    }
+    // Session locale trouvée → continuer en mode local
     console.warn('[App] Supabase non disponible — mode local');
     _demarrerApp({ nom: DB.get('shopname') || 'Ma Boutique' });
     return;
