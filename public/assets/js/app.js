@@ -586,10 +586,9 @@ async function initApp() {
       return;
     }
   } catch (err) {
-    // Erreur Supabase → rediriger vers auth
-    console.error('[Auth] Erreur session:', err);
-    sessionStorage.clear();
-    window.location.href = 'auth.html';
+    // Supabase non disponible — continuer en mode local
+    console.warn('[App] Supabase indisponible, mode local');
+    _demarrerApp({ nom: DB.get('shopname') || 'Ma Boutique' });
     return;
   }
 
