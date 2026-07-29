@@ -86,8 +86,10 @@ body{font-family:"DM Sans",sans-serif;background:var(--ink);color:var(--cream);m
 .badge-low{background:rgba(255,169,64,0.12);color:var(--warn);}
 .badge-out{background:rgba(255,90,90,0.12);color:var(--danger);}
 </style>
+<link rel="stylesheet" href="assets/css/redesign.css">
+<script src="assets/js/design-system.js" defer></script>
 </head>
-<body>
+<body class="page-employee">
 
 <!-- TOPBAR -->
 <div class="topbar">
@@ -215,10 +217,10 @@ async function init() {
   empAccount = emp;
   boutiqueData = emp.boutiques;
 
-  document.getElementById('shop-name').textContent = boutiqueData?.nom || '—';
+  document.getElementById('shop-name').textContent = boutiqueData?.nom || '—';  
   document.getElementById('emp-name').textContent = emp.nom;
 
-  // Charger les produits selon l'accès
+  // Charger les produits selon l'accès (i can't be just a guest in this world, i need to be a part of building something bigger than my purpose , it's a full journey of failing and learning through the hardships of life , even if nothing isn't guarantees, i have to make the impossible possible and make the world a better place for everyone responding to the needs of the people and the environment) 
   await chargerDonnees();
   showPage('caisse');
 }
