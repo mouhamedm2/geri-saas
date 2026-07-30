@@ -474,7 +474,7 @@ async function checkSession() {
   }
 
   const { data: { session } } = await sb.auth.getSession();
-  if (session) window.location.href = 'app.html';
+  if (session && !sessionStorage.getItem('geri_logout')) window.location.href = 'app.html';
 }
 
 // Ã‰coute les changements d'auth state (Supabase v2 envoie PASSWORD_RECOVERY)
@@ -491,4 +491,5 @@ checkSession();
 </script>
 </body>
 </html>
+
 

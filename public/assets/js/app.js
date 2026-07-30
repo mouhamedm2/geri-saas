@@ -432,8 +432,10 @@ function stockBadge(p) {
 
 function seDeconnecter() {
   if (!confirm('Se déconnecter ?')) return;
+  sessionStorage.setItem('geri_logout', '1');
   if (_supabase) _supabase.auth.signOut();
   sessionStorage.clear();
+  sessionStorage.setItem('geri_logout', '1');
   window.location.href = 'auth.html';
 }
 
