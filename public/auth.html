@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Géri — Connexion</title>
+<title>GÃ©ri â€” Connexion</title>
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="apple-touch-icon" href="logo.svg">
 <link rel="manifest" href="manifest.json">
@@ -39,22 +39,22 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
 .auth-footer a{color:var(--teal);text-decoration:none;}
 .plan-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.2);color:var(--teal);font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;margin-bottom:20px;}
 </style>
-<link rel="stylesheet" href="assets/css/redesign.css">
-<script src="assets/js/design-system.js" defer></script>
+
+
 </head>
 <body class="page-auth">
 <div class="auth-wrap">
   <div class="auth-logo">
-    <div class="auth-logo-word">Géri</div>
-    <div class="auth-logo-sub">Gestion boutique Sénégal</div>
+    <div class="auth-logo-word">GÃ©ri</div>
+    <div class="auth-logo-sub">Gestion boutique SÃ©nÃ©gal</div>
   </div>
 
   <div class="auth-card">
     <div id="plan-badge-wrap"></div>
     <div class="auth-tabs">
       <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Se connecter</div>
-      <div class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Créer un compte</div>
-      <div class="auth-tab" id="tab-employe" onclick="switchTab('employe')">Employé</div>
+      <div class="auth-tab" id="tab-signup" onclick="switchTab('signup')">CrÃ©er un compte</div>
+      <div class="auth-tab" id="tab-employe" onclick="switchTab('employe')">EmployÃ©</div>
     </div>
 
     <div id="error-msg" class="error-msg"></div>
@@ -68,19 +68,19 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
       </div>
       <div class="form-group">
         <label class="form-label">Mot de passe</label>
-        <input class="form-input" id="login-pwd" type="password" placeholder="••••••••" autocomplete="current-password">
+        <input class="form-input" id="login-pwd" type="password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" autocomplete="current-password">
       </div>
-      <button class="btn-submit" id="btn-login" onclick="doLogin()">Se connecter →</button>
+      <button class="btn-submit" id="btn-login" onclick="doLogin()">Se connecter â†’</button>
       <div style="text-align:right;margin-top:10px">
-        <span onclick="switchTab('forgot')" style="font-size:12px;color:var(--teal);cursor:pointer;text-decoration:underline">Mot de passe oublié ?</span>
+        <span onclick="switchTab('forgot')" style="font-size:12px;color:var(--teal);cursor:pointer;text-decoration:underline">Mot de passe oubliÃ© ?</span>
       </div>
     </div>
 
     <!-- EMPLOYE JOIN FORM -->
     <div id="form-employe" style="display:none">
       <div style="background:rgba(0,200,150,0.06);border:1px solid rgba(0,200,150,0.15);border-radius:10px;padding:14px;margin-bottom:16px">
-        <div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:4px">👔 Compte Employé</div>
-        <div style="font-size:12px;color:var(--muted)">Créez votre accès avec la clé fournie par votre patron</div>
+        <div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:4px">ðŸ‘” Compte EmployÃ©</div>
+        <div style="font-size:12px;color:var(--muted)">CrÃ©ez votre accÃ¨s avec la clÃ© fournie par votre patron</div>
       </div>
       <div class="form-group">
         <label class="form-label">Votre nom complet *</label>
@@ -92,48 +92,48 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
       </div>
       <div class="form-group">
         <label class="form-label">Mot de passe *</label>
-        <input class="form-input" id="emp-signup-pwd" type="password" placeholder="Minimum 8 caractères">
+        <input class="form-input" id="emp-signup-pwd" type="password" placeholder="Minimum 8 caractÃ¨res">
       </div>
       <div class="form-group">
-        <label class="form-label">🔑 Clé d'invitation *</label>
+        <label class="form-label">ðŸ”‘ ClÃ© d'invitation *</label>
         <input class="form-input" id="emp-invite-key" placeholder="XXXX-XXXX"
           style="font-family:monospace;font-size:18px;letter-spacing:3px;text-transform:uppercase"
           oninput="this.value=this.value.toUpperCase()">
-        <div style="font-size:11px;color:var(--muted);margin-top:4px">Demandez cette clé à votre employeur</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Demandez cette clÃ© Ã  votre employeur</div>
       </div>
-      <button class="btn-submit" id="btn-emp-signup" onclick="doEmployeSignup()">Rejoindre la boutique →</button>
+      <button class="btn-submit" id="btn-emp-signup" onclick="doEmployeSignup()">Rejoindre la boutique â†’</button>
     </div>
 
     <!-- FORGOT PASSWORD FORM -->
     <div id="form-forgot" style="display:none">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Entrez votre email, vous recevrez un lien pour réinitialiser votre mot de passe.</p>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Entrez votre email, vous recevrez un lien pour rÃ©initialiser votre mot de passe.</p>
       <div class="form-group">
         <label class="form-label">Email</label>
         <input class="form-input" id="forgot-email" type="email" placeholder="vous@email.com" autocomplete="email">
       </div>
-      <button class="btn-submit" id="btn-forgot" onclick="doForgot()">Envoyer le lien →</button>
+      <button class="btn-submit" id="btn-forgot" onclick="doForgot()">Envoyer le lien â†’</button>
       <div style="text-align:center;margin-top:12px">
-        <span onclick="switchTab('login')" style="font-size:12px;color:var(--muted);cursor:pointer">← Retour à la connexion</span>
+        <span onclick="switchTab('login')" style="font-size:12px;color:var(--muted);cursor:pointer">â† Retour Ã  la connexion</span>
       </div>
     </div>
 
-    <!-- RESET PASSWORD FORM (après clic sur lien email) -->
+    <!-- RESET PASSWORD FORM (aprÃ¨s clic sur lien email) -->
     <div id="form-reset" style="display:none">
       <div style="text-align:center;margin-bottom:20px">
-        <div style="font-size:28px">🔐</div>
+        <div style="font-size:28px">ðŸ”</div>
         <div style="font-weight:700;font-size:16px;margin-top:8px">Nouveau mot de passe</div>
-        <div style="font-size:13px;color:var(--muted);margin-top:4px">Choisissez un mot de passe sécurisé</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">Choisissez un mot de passe sÃ©curisÃ©</div>
       </div>
       <div class="form-group">
         <label class="form-label">Nouveau mot de passe</label>
-        <input class="form-input" id="reset-pwd" type="password" placeholder="Minimum 8 caractères">
+        <input class="form-input" id="reset-pwd" type="password" placeholder="Minimum 8 caractÃ¨res">
       </div>
       <div class="form-group">
         <label class="form-label">Confirmer le mot de passe</label>
-        <input class="form-input" id="reset-pwd2" type="password" placeholder="Répétez le mot de passe">
+        <input class="form-input" id="reset-pwd2" type="password" placeholder="RÃ©pÃ©tez le mot de passe">
       </div>
       <div id="pwd-strength" style="margin-bottom:12px;font-size:12px;height:16px"></div>
-      <button class="btn-submit" id="btn-reset" onclick="doReset()">Enregistrer le nouveau mot de passe →</button>
+      <button class="btn-submit" id="btn-reset" onclick="doReset()">Enregistrer le nouveau mot de passe â†’</button>
     </div>
 
     <!-- SIGNUP FORM -->
@@ -148,17 +148,17 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
       </div>
       <div class="form-group">
         <label class="form-label">Mot de passe *</label>
-        <input class="form-input" id="signup-pwd" type="password" placeholder="Minimum 8 caractères" autocomplete="new-password">
+        <input class="form-input" id="signup-pwd" type="password" placeholder="Minimum 8 caractÃ¨res" autocomplete="new-password">
       </div>
-      <button class="btn-submit" id="btn-signup" onclick="doSignup()">Créer mon compte gratuit →</button>
-      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">7 jours d'essai gratuit · Sans carte bancaire</p>
+      <button class="btn-submit" id="btn-signup" onclick="doSignup()">CrÃ©er mon compte gratuit â†’</button>
+      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">7 jours d'essai gratuit Â· Sans carte bancaire</p>
     </div>
 
 
   </div>
 
   <div class="auth-footer">
-    <a href="index.html">← Retour à l'accueil</a>
+    <a href="index.html">â† Retour Ã  l'accueil</a>
   </div>
 </div>
 
@@ -168,9 +168,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ══════════════════════════════════════
-// SÉCURITÉ — Rate limiting & CSRF & Détection suspecte
-// ══════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// SÃ‰CURITÃ‰ â€” Rate limiting & CSRF & DÃ©tection suspecte
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 // CSRF Token
 function generateCSRF() {
@@ -195,7 +195,7 @@ function checkRateLimit() {
   }
   if (data.count >= RL_MAX) {
     const wait = Math.ceil((RL_WINDOW - (Date.now() - data.since)) / 60000);
-    showError(`🔒 Trop de tentatives. Réessayez dans ${wait} minute(s).`);
+    showError(`ðŸ”’ Trop de tentatives. RÃ©essayez dans ${wait} minute(s).`);
     return false;
   }
   return true;
@@ -206,9 +206,9 @@ function recordFailedAttempt() {
   const data = raw ? JSON.parse(raw) : { count: 0, since: Date.now() };
   data.count += 1;
   localStorage.setItem(RL_KEY, JSON.stringify(data));
-  // Détection connexion suspecte : 3+ échecs
+  // DÃ©tection connexion suspecte : 3+ Ã©checs
   if (data.count >= 3) {
-    console.warn('[GERI SECURITY] Connexions suspectes détectées:', data.count, 'tentatives');
+    console.warn('[GERI SECURITY] Connexions suspectes dÃ©tectÃ©es:', data.count, 'tentatives');
     // Log dans Supabase si disponible
     try {
       sb.from('audit_logs').insert({
@@ -231,14 +231,14 @@ function sanitize(str) {
 }
 
 const params = new URLSearchParams(location.search);
-// Validation stricte des paramètres URL
+// Validation stricte des paramÃ¨tres URL
 const ALLOWED_PLANS = ['pro', 'business'];
 const rawPlan = params.get('plan');
 const plan = ALLOWED_PLANS.includes(rawPlan) ? rawPlan : null;
 
 
 if (plan) {
-  const labels = { pro: '⭐ Plan Pro — 4 900 FCFA/mois', business: '🚀 Plan Business — 14 900 FCFA/mois' };
+  const labels = { pro: 'â­ Plan Pro â€” 4 900 FCFA/mois', business: 'ðŸš€ Plan Business â€” 14 900 FCFA/mois' };
   document.getElementById('plan-badge-wrap').innerHTML =
     `<div class="plan-badge">${labels[plan]}</div>`;
   switchTab('signup');
@@ -266,13 +266,13 @@ async function doEmployeSignup() {
 
   if (!nom) { showError('Votre nom est obligatoire'); return; }
   if (!email) { showError('Email requis'); return; }
-  if (pwd.length < 8) { showError('Mot de passe minimum 8 caractères'); return; }
-  if (!key || key.length < 8) { showError('Clé d\'invitation invalide'); return; }
+  if (pwd.length < 8) { showError('Mot de passe minimum 8 caractÃ¨res'); return; }
+  if (!key || key.length < 8) { showError('ClÃ© d\'invitation invalide'); return; }
 
   const btn = document.getElementById('btn-emp-signup');
-  btn.disabled = true; btn.textContent = 'Vérification…';
+  btn.disabled = true; btn.textContent = 'VÃ©rificationâ€¦';
 
-  // Vérifier la clé dans Supabase
+  // VÃ©rifier la clÃ© dans Supabase
   const { data: boutique, error: bErr } = await sb
     .from('boutiques')
     .select('id, nom, user_id')
@@ -280,25 +280,25 @@ async function doEmployeSignup() {
     .single();
 
   if (bErr || !boutique) {
-    btn.disabled = false; btn.textContent = 'Rejoindre la boutique →';
-    showError('Clé d\'invitation invalide ou expirée');
+    btn.disabled = false; btn.textContent = 'Rejoindre la boutique â†’';
+    showError('ClÃ© d\'invitation invalide ou expirÃ©e');
     return;
   }
 
-  btn.textContent = 'Création du compte…';
+  btn.textContent = 'CrÃ©ation du compteâ€¦';
 
-  // Créer le compte Supabase Auth
+  // CrÃ©er le compte Supabase Auth
   const { data, error } = await sb.auth.signUp({
     email, password: pwd,
     options: { data: { nom, role: 'employe', boutique_id: boutique.id, boutique_nom: boutique.nom } }
   });
 
   if (error) {
-    btn.disabled = false; btn.textContent = 'Rejoindre la boutique →';
+    btn.disabled = false; btn.textContent = 'Rejoindre la boutique â†’';
     showError(error.message); return;
   }
 
-  // Créer le compte employé dans employe_accounts
+  // CrÃ©er le compte employÃ© dans employe_accounts
   if (data.user) {
     await sb.from('employe_accounts').insert({
       user_id: data.user.id,
@@ -314,8 +314,8 @@ async function doEmployeSignup() {
     sessionStorage.setItem('geri_boutique_nom', boutique.nom);
   }
 
-  btn.disabled = false; btn.textContent = 'Rejoindre la boutique →';
-  showSuccess('Compte créé ! Vérifiez votre email puis connectez-vous.');
+  btn.disabled = false; btn.textContent = 'Rejoindre la boutique â†’';
+  showSuccess('Compte crÃ©Ã© ! VÃ©rifiez votre email puis connectez-vous.');
   switchTab('login');
 }
 
@@ -323,15 +323,15 @@ async function doForgot() {
   const email = document.getElementById('forgot-email').value.trim();
   if (!email) { showError('Email requis'); return; }
   const btn = document.getElementById('btn-forgot');
-  btn.disabled = true; btn.textContent = 'Envoi…';
-  // Whitelist : seule l'URL officielle est autorisée
+  btn.disabled = true; btn.textContent = 'Envoiâ€¦';
+  // Whitelist : seule l'URL officielle est autorisÃ©e
   const ALLOWED_REDIRECT = 'https://geri-saas.vercel.app/auth.html?reset=1';
   const { error } = await sb.auth.resetPasswordForEmail(email, {
     redirectTo: ALLOWED_REDIRECT
   });
-  btn.disabled = false; btn.textContent = 'Envoyer le lien →';
+  btn.disabled = false; btn.textContent = 'Envoyer le lien â†’';
   if (error) { showError(error.message); return; }
-  showSuccess('✅ Email envoyé ! Vérifiez votre boîte mail (et les spams).');
+  showSuccess('âœ… Email envoyÃ© ! VÃ©rifiez votre boÃ®te mail (et les spams).');
 }
 
 function showError(msg) {
@@ -355,16 +355,16 @@ async function doLogin() {
   const pwd = document.getElementById('login-pwd').value;
   if (!email || !pwd) { showError('Email et mot de passe requis'); return; }
   const btn = document.getElementById('btn-login');
-  btn.disabled = true; btn.textContent = 'Connexion…';
+  btn.disabled = true; btn.textContent = 'Connexionâ€¦';
   const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
-  btn.disabled = false; btn.textContent = 'Se connecter →';
+  btn.disabled = false; btn.textContent = 'Se connecter â†’';
   if (error) {
     recordFailedAttempt();
     showError('Email ou mot de passe incorrect');
     return;
   }
   resetRateLimit();
-  // Audit log connexion réussie
+  // Audit log connexion rÃ©ussie
   try {
     await sb.from('audit_logs').insert({
       user_id: data.user.id,
@@ -374,7 +374,7 @@ async function doLogin() {
   } catch(e) {}
   sessionStorage.setItem('geri_user_id', data.user.id);
   sessionStorage.setItem('geri_email', data.user.email);
-  // Vérifier si c'est un employé
+  // VÃ©rifier si c'est un employÃ©
   const { data: empAccount } = await sb.from('employe_accounts').select('*').eq('user_id', data.user.id).single();
   if (empAccount) {
     sessionStorage.setItem('geri_role', 'employe');
@@ -391,14 +391,14 @@ async function doSignup() {
   const pwd = document.getElementById('signup-pwd').value;
   if (!boutique) { showError('Le nom de votre boutique est obligatoire'); return; }
   if (!email) { showError('Email requis'); return; }
-  if (pwd.length < 8) { showError('Le mot de passe doit faire au moins 8 caractères'); return; }
+  if (pwd.length < 8) { showError('Le mot de passe doit faire au moins 8 caractÃ¨res'); return; }
   const btn = document.getElementById('btn-signup');
-  btn.disabled = true; btn.textContent = 'Création…';
+  btn.disabled = true; btn.textContent = 'CrÃ©ationâ€¦';
   const { data, error } = await sb.auth.signUp({
     email, password: pwd,
     options: { data: { boutique_nom: boutique } }
   });
-  btn.disabled = false; btn.textContent = 'Créer mon compte gratuit →';
+  btn.disabled = false; btn.textContent = 'CrÃ©er mon compte gratuit â†’';
   if (error) { showError(error.message); return; }
   if (data.user) {
     await sb.from('boutiques').insert({
@@ -410,7 +410,7 @@ async function doSignup() {
     sessionStorage.setItem('geri_user_id', data.user.id);
     sessionStorage.setItem('geri_boutique', boutique);
   }
-  showSuccess('Compte créé ! Vérifiez votre email pour confirmer, puis connectez-vous.');
+  showSuccess('Compte crÃ©Ã© ! VÃ©rifiez votre email pour confirmer, puis connectez-vous.');
   switchTab('login');
 }
 
@@ -430,7 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (/[A-Z]/.test(v)) score++;
       if (/[0-9]/.test(v)) score++;
       if (/[^A-Za-z0-9]/.test(v)) score++;
-      const labels = ['', '⚠️ Très faible','🔴 Faible','🟡 Moyen','🟢 Fort','✅ Très fort'];
+      const labels = ['', 'âš ï¸ TrÃ¨s faible','ðŸ”´ Faible','ðŸŸ¡ Moyen','ðŸŸ¢ Fort','âœ… TrÃ¨s fort'];
       el.textContent = labels[score] || '';
     });
   }
@@ -439,16 +439,16 @@ document.addEventListener('DOMContentLoaded', () => {
 async function doReset() {
   const pwd = document.getElementById('reset-pwd').value;
   const pwd2 = document.getElementById('reset-pwd2').value;
-  if (pwd.length < 8) { showError('Le mot de passe doit faire au moins 8 caractères'); return; }
+  if (pwd.length < 8) { showError('Le mot de passe doit faire au moins 8 caractÃ¨res'); return; }
   if (!/[A-Z]/.test(pwd)) { showError('Ajoutez au moins une majuscule'); return; }
   if (!/[0-9]/.test(pwd)) { showError('Ajoutez au moins un chiffre'); return; }
   if (pwd !== pwd2) { showError('Les deux mots de passe ne correspondent pas'); return; }
   const btn = document.getElementById('btn-reset');
-  btn.disabled = true; btn.textContent = 'Enregistrement…';
+  btn.disabled = true; btn.textContent = 'Enregistrementâ€¦';
   const { error } = await sb.auth.updateUser({ password: pwd });
-  btn.disabled = false; btn.textContent = 'Enregistrer →';
+  btn.disabled = false; btn.textContent = 'Enregistrer â†’';
   if (error) { showError(error.message); return; }
-  showSuccess('✅ Mot de passe mis à jour ! Redirection…');
+  showSuccess('âœ… Mot de passe mis Ã  jour ! Redirectionâ€¦');
   setTimeout(() => { window.location.href = 'app.html'; }, 2000);
 }
 
@@ -477,7 +477,7 @@ async function checkSession() {
   if (session) window.location.href = 'app.html';
 }
 
-// Écoute les changements d'auth state (Supabase v2 envoie PASSWORD_RECOVERY)
+// Ã‰coute les changements d'auth state (Supabase v2 envoie PASSWORD_RECOVERY)
 sb.auth.onAuthStateChange((event, session) => {
   if (event === 'PASSWORD_RECOVERY') {
     document.getElementById('tab-login').parentElement.style.display = 'none';
@@ -491,3 +491,4 @@ checkSession();
 </script>
 </body>
 </html>
+
