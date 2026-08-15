@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Géri â€” Connexion</title>
+<title>Géri "” Connexion</title>
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="apple-touch-icon" href="logo.svg">
 <link rel="manifest" href="manifest.json">
@@ -70,7 +70,7 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
         <label class="form-label">Mot de passe</label>
         <input class="form-input" id="login-pwd" type="password" placeholder="••••••••" autocomplete="current-password">
       </div>
-      <button class="btn-submit" id="btn-login" onclick="doLogin()">Se connecter â†’</button>
+      <button class="btn-submit" id="btn-login" onclick="doLogin()">Se connecter †’</button>    
       <div style="text-align:right;margin-top:10px">
         <span onclick="switchTab('forgot')" style="font-size:12px;color:var(--teal);cursor:pointer;text-decoration:underline">Mot de passe oublié ?</span>
       </div>
@@ -101,7 +101,7 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
           oninput="this.value=this.value.toUpperCase()">
         <div style="font-size:11px;color:var(--muted);margin-top:4px">Demandez cette clé Ã  votre employeur</div>
       </div>
-      <button class="btn-submit" id="btn-emp-signup" onclick="doEmployeSignup()">Rejoindre la boutique â†’</button>
+      <button class="btn-submit" id="btn-emp-signup" onclick="doEmployeSignup()">Rejoindre la boutique †’</button>
     </div>
 
     <!-- FORGOT PASSWORD FORM -->
@@ -111,9 +111,9 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
         <label class="form-label">Email</label>
         <input class="form-input" id="forgot-email" type="email" placeholder="vous@email.com" autocomplete="email">
       </div>
-      <button class="btn-submit" id="btn-forgot" onclick="doForgot()">Envoyer le lien â†’</button>
+      <button class="btn-submit" id="btn-forgot" onclick="doForgot()">Envoyer le lien †’</button>
       <div style="text-align:center;margin-top:12px">
-        <span onclick="switchTab('login')" style="font-size:12px;color:var(--muted);cursor:pointer">â† Retour Ã  la connexion</span>
+        <span onclick="switchTab('login')" style="font-size:12px;color:var(--muted);cursor:pointer">† Retour Ã  la connexion</span>
       </div>
     </div>
 
@@ -133,7 +133,7 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
         <input class="form-input" id="reset-pwd2" type="password" placeholder="Répétez le mot de passe">
       </div>
       <div id="pwd-strength" style="margin-bottom:12px;font-size:12px;height:16px"></div>
-      <button class="btn-submit" id="btn-reset" onclick="doReset()">Enregistrer le nouveau mot de passe â†’</button>
+      <button class="btn-submit" id="btn-reset" onclick="doReset()">Enregistrer le nouveau mot de passe †’</button>
     </div>
 
     <!-- SIGNUP FORM -->
@@ -150,15 +150,15 @@ body::before{content:"";position:fixed;top:-200px;left:50%;transform:translateX(
         <label class="form-label">Mot de passe *</label>
         <input class="form-input" id="signup-pwd" type="password" placeholder="Minimum 8 caractères" autocomplete="new-password">
       </div>
-      <button class="btn-submit" id="btn-signup" onclick="doSignup()">Créer mon compte gratuit â†’</button>
-      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">7 jours d'essai gratuit Â· Sans carte bancaire</p>
+      <button class="btn-submit" id="btn-signup" onclick="doSignup()">Créer mon compte gratuit †’</button>
+      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px">7 jours d'essai gratuit · Sans carte bancaire</p>
     </div>
 
 
   </div>
 
   <div class="auth-footer">
-    <a href="index.html">â† Retour Ã  l'accueil</a>
+    <a href="index.html">† Retour Ã  l'accueil</a>
   </div>
 </div>
 
@@ -168,9 +168,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// SÃ‰CURITÃ‰ â€” Rate limiting & CSRF & Détection suspecte
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ••••••••••••••••••••••••••••••••••••••
+// SÃ‰CURITÃ‰ "” Rate limiting & CSRF & Détection suspecte
+// ••••••••••••••••••••••••••••••••••••••
 
 // CSRF Token
 function generateCSRF() {
@@ -238,7 +238,7 @@ const plan = ALLOWED_PLANS.includes(rawPlan) ? rawPlan : null;
 
 
 if (plan) {
-  const labels = { pro: 'â­ Plan Pro â€” 4 900 FCFA/mois', business: 'ðŸš€ Plan Business â€” 14 900 FCFA/mois' };
+  const labels = { pro: '­ Plan Pro "” 4 900 FCFA/mois', business: 'ðŸš€ Plan Business "” 14 900 FCFA/mois' };
   document.getElementById('plan-badge-wrap').innerHTML =
     `<div class="plan-badge">${labels[plan]}</div>`;
   switchTab('signup');
@@ -280,7 +280,7 @@ async function doEmployeSignup() {
     .single();
 
   if (bErr || !boutique) {
-    btn.disabled = false; btn.textContent = 'Rejoindre la boutique â†’';
+    btn.disabled = false; btn.textContent = 'Rejoindre la boutique †’';
     showError('Clé d\'invitation invalide ou expirée');
     return;
   }
@@ -294,7 +294,7 @@ async function doEmployeSignup() {
   });
 
   if (error) {
-    btn.disabled = false; btn.textContent = 'Rejoindre la boutique â†’';
+    btn.disabled = false; btn.textContent = 'Rejoindre la boutique †’';
     showError(error.message); return;
   }
 
@@ -314,7 +314,7 @@ async function doEmployeSignup() {
     sessionStorage.setItem('geri_boutique_nom', boutique.nom);
   }
 
-  btn.disabled = false; btn.textContent = 'Rejoindre la boutique â†’';
+  btn.disabled = false; btn.textContent = 'Rejoindre la boutique †’';
   showSuccess('Compte créé ! Vérifiez votre email puis connectez-vous.');
   switchTab('login');
 }
@@ -329,9 +329,9 @@ async function doForgot() {
   const { error } = await sb.auth.resetPasswordForEmail(email, {
     redirectTo: ALLOWED_REDIRECT
   });
-  btn.disabled = false; btn.textContent = 'Envoyer le lien â†’';
+  btn.disabled = false; btn.textContent = 'Envoyer le lien †’';
   if (error) { showError(error.message); return; }
-  showSuccess('âœ… Email envoyé ! Vérifiez votre boîte mail (et les spams).');
+  showSuccess('œ… Email envoyé ! Vérifiez votre boîte mail (et les spams).');
 }
 
 function showError(msg) {
@@ -357,7 +357,7 @@ async function doLogin() {
   const btn = document.getElementById('btn-login');
   btn.disabled = true; btn.textContent = 'Connexion…';
   const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
-  btn.disabled = false; btn.textContent = 'Se connecter â†’';
+  btn.disabled = false; btn.textContent = 'Se connecter †’';
   if (error) {
     recordFailedAttempt();
     showError('Email ou mot de passe incorrect');
@@ -398,7 +398,7 @@ async function doSignup() {
     email, password: pwd,
     options: { data: { boutique_nom: boutique } }
   });
-  btn.disabled = false; btn.textContent = 'Créer mon compte gratuit â†’';
+  btn.disabled = false; btn.textContent = 'Créer mon compte gratuit †’';
   if (error) { showError(error.message); return; }
   if (data.user) {
     await sb.from('boutiques').insert({
@@ -430,7 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (/[A-Z]/.test(v)) score++;
       if (/[0-9]/.test(v)) score++;
       if (/[^A-Za-z0-9]/.test(v)) score++;
-      const labels = ['', 'âš ï¸ Très faible','ðŸ”´ Faible','ðŸŸ¡ Moyen','ðŸŸ¢ Fort','âœ… Très fort'];
+      const labels = ['', 'š ï¸ Très faible','ðŸ”´ Faible','ðŸŸ¡ Moyen','ðŸŸ¢ Fort','œ… Très fort'];
       el.textContent = labels[score] || '';
     });
   }
@@ -446,9 +446,9 @@ async function doReset() {
   const btn = document.getElementById('btn-reset');
   btn.disabled = true; btn.textContent = 'Enregistrement…';
   const { error } = await sb.auth.updateUser({ password: pwd });
-  btn.disabled = false; btn.textContent = 'Enregistrer â†’';
+  btn.disabled = false; btn.textContent = 'Enregistrer †’';
   if (error) { showError(error.message); return; }
-  showSuccess('âœ… Mot de passe mis Ã  jour ! Redirection…');
+  showSuccess('œ… Mot de passe mis Ã  jour ! Redirection…');
   setTimeout(() => { window.location.href = 'app.html'; }, 2000);
 }
 
@@ -489,6 +489,7 @@ sb.auth.onAuthStateChange((event, session) => {
 
 checkSession();
 </script>
+<script src="assets/js/security.js"></script>
 </body>
 </html>
 
